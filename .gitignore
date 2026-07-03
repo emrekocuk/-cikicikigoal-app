@@ -1,0 +1,21 @@
+node_modules/
+android/.gradle/
+android/build/
+android/app/build/
+android/captures/
+android/.idea/
+android/local.properties
+android/app/google-services.json
+*.keystore
+*.jks
+.DS_Store
+.github/
+# iOS (build artefaktları — cap sync + pod install bunları üretir)
+ios/App/Pods/
+ios/App/build/
+ios/App/output/
+ios/App/App/public/
+ios/App/DerivedData/
+ios/App/Podfile.lock
+*.xcuserstate
+**/xcuserdata/

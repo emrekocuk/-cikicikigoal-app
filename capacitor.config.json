@@ -1,0 +1,17 @@
+﻿{
+  "appId": "com.cikicikigoal.app",
+  "appName": "cikicikigoal",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https",
+    "allowNavigation": ["selimteks.com.tr", "*.selimteks.com.tr"]
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    },
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
+    }
+  }
+}

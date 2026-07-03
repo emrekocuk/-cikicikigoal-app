@@ -1,0 +1,69 @@
+﻿workflows:
+  ios-capacitor:
+    name: cikicikigoal iOS (Capacitor)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: cikicikigoal ASC      # ASC API key — CLI imza araçlarına otomatik geçer
+    environment:
+      groups:
+        - ios_signing          # Codemagic UI'da bu grup + DIST_CERT_KEY_B64 (Secure) eklenecek
+      vars:
+        BUNDLE_ID: "com.cikicikigoal.app"
+        XCODE_PROJECT: "ios/App/App.xcodeproj"
+        XCODE_SCHEME: "App"
+      node: 22
+      xcode: latest
+      # Capacitor 8 = Swift Package Manager (CocoaPods YOK)
+    scripts:
+      - name: npm install
+        script: npm install
+      - name: Capacitor sync iOS (www + config + SPM pluginler)
+        script: npx cap sync ios
+      - name: İmza — sertifika + profil OLUŞTUR/uygula (ASC API key)
+        script: |
+          set -e
+          keychain initialize
+          # SABİT private key (Codemagic env: DIST_CERT_KEY_B64, grup: ios_signing, Secure ✓).
+          if [ -z "$DIST_CERT_KEY_B64" ]; then
+            echo "❌ DIST_CERT_KEY_B64 BOŞ geldi. Codemagic > Environment variables kontrol et:"
+            echo "   ad=DIST_CERT_KEY_B64  |  grup=ios_signing  |  Secure=işaretli  |  değer tam yapıştırılmış"
+            exit 1
+          fi
+          echo "DIST_CERT_KEY_B64 uzunluk: ${#DIST_CERT_KEY_B64} karakter"
+          printf '%s' "$DIST_CERT_KEY_B64" | openssl base64 -d -A > /tmp/dist_key_raw.pem
+          if ! grep -qE "BEGIN (RSA )?PRIVATE KEY" /tmp/dist_key_raw.pem; then
+            echo "❌ Çözülen içerik geçerli PEM değil — env değeri eksik/bozuk yapıştırılmış."; exit 1
+          fi
+          # app-store-connect PKCS#1 (BEGIN RSA PRIVATE KEY) ister → PKCS#8/junk farketmez, normalize et
+          if openssl rsa -in /tmp/dist_key_raw.pem -traditional -out /tmp/dist_key.pem 2>/dev/null \
+             || openssl rsa -in /tmp/dist_key_raw.pem -out /tmp/dist_key.pem 2>/dev/null; then
+            echo "✅ key normalize edildi (PKCS#1): $(head -1 /tmp/dist_key.pem)"
+          else
+            echo "❌ openssl key'i parse edemedi — env base64'ünü yeniden yapıştır."; exit 1
+          fi
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --certificate-key=@file:/tmp/dist_key.pem \
+            --create
+          keychain add-certificates
+          xcode-project use-profiles
+          echo "=== indirilen profiller ==="
+          ls -la ~/Library/MobileDevice/Provisioning\ Profiles/ 2>/dev/null || echo "PROFIL YOK"
+          echo "=== keychain imza kimlikleri ==="
+          security find-identity -v -p codesigning || true
+      - name: Sürüm + build numarası
+        script: |
+          cd ios/App
+          agvtool new-marketing-version 1.0.0
+          agvtool new-version -all $(($BUILD_NUMBER + 100))
+      - name: IPA derle (App Store dağıtım, SPM)
+        script: |
+          xcode-project build-ipa --project "$XCODE_PROJECT" --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: false            # TestFlight'a yükler; App Store gönderimini elle yaparız
