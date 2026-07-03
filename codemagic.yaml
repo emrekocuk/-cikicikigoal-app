@@ -4,7 +4,7 @@
     instance_type: mac_mini_m2
     max_build_duration: 60
     integrations:
-      app_store_connect: cikicikigoal ASC      # ASC API key — CLI imza araçlarına otomatik geçer
+      app_store_connect: cikicikibaba ASC      # ASC API key — CLI imza araçlarına otomatik geçer
     environment:
       groups:
         - ios_signing          # Codemagic UI'da bu grup + DIST_CERT_KEY_B64 (Secure) eklenecek
