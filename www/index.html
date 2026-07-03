@@ -203,6 +203,7 @@ h1{font-size:19px;font-weight:900;color:#fff}h1 b{color:var(--altin)}
 .cbub .cmsg{max-width:80%;padding:10px 13px;border-radius:14px;font-size:12.5px;line-height:1.55}
 .cbub.a .cmsg{background:#eef4ff;border:1px solid #d3e2ff;border-top-left-radius:4px;color:#1a2b45}
 .cbub.u .cmsg{background:#fff7e6;border:1px solid #f0d98a;border-top-right-radius:4px;font-weight:600}
+.cbildir{cursor:pointer;font-size:12px;opacity:.45;align-self:flex-start;padding:2px 4px}.cbildir:active{opacity:1}
 .copen{display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,var(--mavi),#5b9bff);color:#fff;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:800;cursor:pointer;width:100%;margin-top:6px;box-shadow:0 3px 10px rgba(47,128,237,.3)}
 .cinput{display:none;gap:8px;margin-top:10px}.cinput.on{display:flex}
 .cinput input{flex:1;border:1.5px solid #cfe0ff;border-radius:22px;padding:11px 15px;font-size:13px;outline:none;font-family:inherit}
@@ -307,6 +308,7 @@ setTimeout(function(){try{pushKur();}catch(e){}},1500);
 function ligAc(h){var b=h.nextElementSibling;var kapali=b.style.display==='none';b.style.display=kapali?'':'none';var ok=h.querySelector('.ok');if(ok)ok.textContent=kapali?'▾':'▸';}
 function bildirimAc(id,ev){ev.stopPropagation();if(!CIKI_TOKEN){girisAc();return;}BILDIRIM[id]=!BILDIRIM[id];try{localStorage.setItem('bildirim',JSON.stringify(BILDIRIM));}catch(e){}ev.target.classList.toggle('on',!!BILDIRIM[id]);
   fetch(API+'/uye/bildirim',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:CIKI_TOKEN,mac_id:id,on:BILDIRIM[id]})}).catch(function(){});}
+function bildirIcerik(ev,idx){ev.stopPropagation();if(!CIKI_TOKEN){girisAc();return;}if(!confirm('Bu içeriği uygunsuz olarak bildir? İncelenip kaldırılacak.'))return;fetch(API+'/bildir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:CIKI_TOKEN,mac_id:AKTIF_MAC,idx:idx})}).then(function(){alert('Bildirildi, teşekkürler. İçerik kaldırıldı.');ac(AKTIF_MAC);}).catch(function(){alert('Bildirildi.');});}
 function golBildir(m,side){var c=document.getElementById('goltoast');if(!c)return;var atan=side==='ev'?tr(m.ev):tr(m.dep);var el=document.createElement('div');el.className='gtoast';el.innerHTML='<img src="logo.png"><div class="gt2"><div class="gt1">⚽ GOL! · '+atan+'</div><div class="gt3">'+tr(m.ev)+' <b>'+m.eg+'-'+m.dg+'</b> '+tr(m.dep)+'</div></div>';el.onclick=function(){ac(m.id);};c.appendChild(el);setTimeout(function(){el.classList.add('out');setTimeout(function(){el.remove();},400);},6000);}
 async function loadGun(tarih,el,sessiz){
   AKTIF_TARIH=tarih;
@@ -478,7 +480,7 @@ async function ac(id){
   const TH=d.tahminci;
   let cardAI;
   let sohbetH='';
-  if(m.kapsam){var chatIc=(feed&&feed.length)?feed.map(function(s){return '<div class="cbub '+(s.rol==='u'?'u':'a')+'"><span class="cav">'+(s.rol==='u'?'👤':'✦')+'</span><div class="cmsg">'+(s.rol==='u'&&s.ad?'<b style="color:#2f80ed">'+String(s.ad).replace(/</g,'&lt;')+'</b> ':'')+String(s.mesaj).replace(/</g,'&lt;').replace(/\n/g,'<br>')+'</div></div>';}).join(''):'<div style="color:#7c8aa0;font-size:12.5px;padding:6px 2px">Henüz soru yok — ilk soruyu sen sor, cevabı herkes görecek 👇</div>';
+  if(m.kapsam){var chatIc=(feed&&feed.length)?feed.map(function(s,i){var isU=s.rol==='u';return '<div class="cbub '+(isU?'u':'a')+'"><span class="cav">'+(isU?'👤':'✦')+'</span><div class="cmsg">'+(isU&&s.ad?'<b style="color:#2f80ed">'+String(s.ad).replace(/</g,'&lt;')+'</b> ':'')+String(s.mesaj).replace(/</g,'&lt;').replace(/\n/g,'<br>')+'</div>'+(isU?'<span class="cbildir" onclick="bildirIcerik(event,'+i+')" title="Uygunsuz icerigi bildir">⚠</span>':'')+'</div>';}).join(''):'<div style="color:#7c8aa0;font-size:12.5px;padding:6px 2px">Henüz soru yok — ilk soruyu sen sor, cevabı herkes görecek 👇</div>';
     sohbetH='<div class="sec" style="margin-top:18px;color:#2f80ed">💬 ciki ile Sohbet · canlı cevap</div><div class="chat" id="chat">'+chatIc+'</div><button class="copen" onclick="sohbetAc()">'+T.sorBtn+'</button><div class="cinput" id="cinput"><input id="csoru" placeholder="'+T.ph+'"><button onclick="sorCiki()">➤</button></div>';}
   if(d.ai){const a=d.ai;
     let formH='';
