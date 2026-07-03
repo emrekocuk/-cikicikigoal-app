@@ -1,4 +1,4 @@
-﻿workflows:
+workflows:
   ios-capacitor:
     name: cikicikigoal iOS (Capacitor)
     instance_type: mac_mini_m2
