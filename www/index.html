@@ -398,13 +398,14 @@ function totoTemizle(){totoSecim={};BOL=null;totoRender();}
 function acAI(id,e){if(e)e.stopPropagation();ac(id).then(function(){var t=document.querySelector('#detay .sk2[onclick="gt(\'ai\',this)"]');if(t)t.click();});}
 var GUNAD=['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'],AYAD=['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
 function gunEtiket(t){var d=new Date(t);if(isNaN(d.getTime()))return t;var b=GUNAD[d.getDay()]+', '+d.getDate()+' '+AYAD[d.getMonth()];var bg=new Date();bg.setHours(0,0,0,0);var fark=Math.round((d-bg)/86400000);return (fark===0?'Bugün · ':(fark===1?'Yarın · ':''))+b;}
+async function karnedenAc(id,tarih){karneKapat();if(!MAC[id]&&tarih){try{await loadGun(tarih,null,true);}catch(e){}}if(MAC[id])ac(id);else alert('Maç şu an yüklenemedi, tekrar dene.');}
 async function karneAc(){
   const kn=document.getElementById('karne');document.body.style.overflow='hidden';kn.scrollTop=0;
   kn.innerHTML='<div class="dbar"><span class="geri" onclick="karneKapat()">‹</span><span class="baslik">'+T.karneT+'</span><span style="width:24px"></span></div><div class="load">Yükleniyor…</div>';kn.classList.add('on');
   let k={};try{k=await (await fetch(API+'/data/karne.json?_='+Date.now())).json();}catch(e){}
   const o=k.ozet||{};const oran=o.toplam?Math.round(100*o.tuttu/o.toplam):0;const bko=o.banko_toplam?Math.round(100*o.banko_tuttu/o.banko_toplam):0;
   const ik={tuttu:'✅',tutmadi:'❌',bekliyor:'⏳'};
-  const ph=p=>'<div class="kpick '+p.sonuc+(p.id?' tikla':'')+'"'+(p.id?' onclick="karneKapat();ac('+p.id+')"':'')+'><span class="durum">'+(ik[p.sonuc]||'')+'</span><div class="info"><div class="m">'+(p.sonuc!=='bekliyor'?p.tarih+' · ':'')+p.mac+'</div><div class="s">'+(p.tur==='banko'?'🔒 Banko':'💎 Değer')+' · '+p.secim+'</div></div><div class="sag"><div class="o">'+p.oran+'</div><div class="sk">'+(p.skor||(p.sonuc==='bekliyor'?'›':''))+'</div></div></div>';
+  const ph=p=>'<div class="kpick '+p.sonuc+(p.id?' tikla':'')+'"'+(p.id?' onclick="karnedenAc('+p.id+',\''+(p.tam_tarih||'')+'\')"':'')+'><span class="durum">'+(ik[p.sonuc]||'')+'</span><div class="info"><div class="m">'+(p.sonuc!=='bekliyor'?p.tarih+' · ':'')+p.mac+'</div><div class="s">'+(p.tur==='banko'?'🔒 Banko':'💎 Değer')+' · '+p.secim+'</div></div><div class="sag"><div class="o">'+p.oran+'</div><div class="sk">'+(p.skor||(p.sonuc==='bekliyor'?'›':''))+'</div></div></div>';
   const byOran=(a,b)=>(parseFloat(b.oran)||0)-(parseFloat(a.oran)||0);   // yüksek oran üste
   var _gun={};(k.picks||[]).filter(p=>p.sonuc==='bekliyor').forEach(function(p){var g=p.tam_tarih||p.tarih;(_gun[g]=_gun[g]||[]).push(p);});
   const bekleyen=Object.keys(_gun).sort().map(function(g){return '<div class="kgun">📅 '+gunEtiket(g)+'</div>'+_gun[g].sort(byOran).map(ph).join('');}).join('')||'<div class="kbos">Şu an sonuçlanmamış tahmin yok.</div>';
