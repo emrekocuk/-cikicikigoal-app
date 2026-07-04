@@ -253,7 +253,7 @@ let DIL=(navigator.language||'en').slice(0,2);
 try{if((Intl.DateTimeFormat().resolvedOptions().timeZone||'')==='Europe/Istanbul')DIL='tr';}catch(e){}  // Türkiye'den girene Türkçe
 const T=DILLER[DIL]||DILLER.en;
 // ÜLKE → BOOKMAKER (maç öncesi oran ülke bazlı — İngiltere'den giren Bet365 görür, ciki de onu okur)
-const ULKE_BM={GB:'Bet365',UK:'Bet365',IE:'Bet365',DE:'Bwin',AT:'Bwin',CH:'Bwin',IT:'Bwin',FR:'Bwin',US:'Bovada',CA:'Bovada',MX:'Bovada',TR:'Betano',BR:'Betano',PT:'Betano',ES:'Betano',RO:'Betano',GR:'Betano',RU:'1xBet',UA:'1xBet',KZ:'1xBet',NL:'Unibet',SE:'Unibet',NO:'Unibet',DK:'Unibet',FI:'Unibet'};
+const ULKE_BM={TR:'İddaa',GB:'Bet365',UK:'Bet365',IE:'Bet365',DE:'Bwin',AT:'Bwin',CH:'Bwin',IT:'Bwin',FR:'Bwin',US:'Bovada',CA:'Bovada',MX:'Bovada',BR:'Betano',PT:'Betano',ES:'Betano',RO:'Betano',GR:'Betano',RU:'1xBet',UA:'1xBet',KZ:'1xBet',NL:'Unibet',SE:'Unibet',NO:'Unibet',DK:'Unibet',FI:'Unibet'};
 let ULKE='';try{var _l=navigator.language||'';if(_l.indexOf('-')>0)ULKE=_l.split('-')[1].toUpperCase();}catch(e){}
 try{var _tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'';if(_tz==='Europe/Istanbul')ULKE='TR';else if(_tz==='Europe/London')ULKE='GB';}catch(e){}
 const USER_BM=ULKE_BM[ULKE]||'Bet365';   // varsayılan global = Bet365
@@ -533,9 +533,10 @@ async function ac(id){
       if(gAd==='Alt/Üst Gol'){var mm=(''+l).match(/([\d.]+)/);if(!mm)return false;var ln=parseFloat(mm[1]);if((''+l).indexOf('Üst')>=0)return tot>ln;if((''+l).indexOf('Alt')>=0)return tot<ln;}
       return false;};
     var cell=function(s,gAd){var y=fin?optKazandi(gAd,s.l):s.sec;return '<div class="oddcell'+(y?' sec':'')+'"><div class="lbl">'+tr(s.l)+((y&&fin)?' ✓':'')+'</div><div class="od">'+(s.o||'-')+'</div></div>';};
-    var _gr=(d.oranlar.bm&&d.oranlar.bm.Bet365)?d.oranlar.bm.Bet365:d.oranlar.gruplar;   // tek referans (gerçek oran, markasız gösterilir)
+    var _bm=d.oranlar.bm||{};var _gr=_bm[USER_BM]||_bm['İddaa']||_bm['Bet365']||d.oranlar.gruplar;   // ülkeye göre: TR→İddaa, diğer→Bet365
+    var _iddaa=(_bm[USER_BM]&&USER_BM==='İddaa')||(!_bm[USER_BM]&&!_bm['Bet365']&&_bm['İddaa']);
     pIddaa=_gr.map(function(g){return '<div class="oddsec"><div class="oh">'+g.ad+'</div><div class="oddrow">'+g.secenekler.map(function(s){return cell(s,g.ad);}).join('')+'</div></div>';}).join('')
-      +'<div class="oddnote">🟢 '+(fin?'Kazanan seçim (✓)':'ciki\'nin tercihi')+' · '+(d.oranlar.canli?'Canlı piyasa oranı':'Piyasa oranı')+' · <b>bilgi amaçlıdır, bahis oynatmıyoruz</b></div>';}
+      +'<div class="oddnote">🟢 '+(fin?'Kazanan seçim (✓)':'ciki\'nin tercihi')+' · '+(_iddaa?'İddaa oranı':(d.oranlar.canli?'Canlı piyasa oranı':'Piyasa oranı'))+' · <b>bilgi amaçlıdır, bahis oynatmıyoruz</b></div>';}
   const head='<div class="dhead"><div class="dt"><img src="'+(m.ev_logo||'')+'" onerror="this.style.visibility=\'hidden\'"><div class="nm">'+tr(m.ev)+'</div></div><div class="dmid"><div class="durum">'+durum+'</div><div class="sk">'+(son?(m.eg+'-'+m.dg):'—')+'</div><div class="komp">'+tr(m.lig)+'</div></div><div class="dt"><img src="'+(m.dep_logo||'')+'" onerror="this.style.visibility=\'hidden\'"><div class="nm">'+tr(m.dep)+'</div></div></div>';
   const tabs=[['detay',T.detay,pDetay],['kadro',T.kadro,pKadro],['istat',T.istat,pIstat],['ai',T.tahmin,pAI],['iddaa',T.iddaa,pIddaa]];
   const varsayilan=(d.ai&&olay.length===0)?'ai':'detay';
