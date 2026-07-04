@@ -525,16 +525,16 @@ async function ac(id){
     const tav=TH.tavsiye?('<div class="tav">💡 '+TH.tavsiye+'</div>'):'';
     cardTah='<div class="pcard"><div class="ph"><span class="av">👤</span>Tahminci Analizi<span class="badge t">İSTATİSTİK</span></div><div class="body">Öngörülen kazanan: <b>'+(TH.kazanan||'—')+'</b><div class="yuz"><div class="h" style="width:'+yh+'%">'+(yh>10?yh+'%':'')+'</div><div class="d" style="width:'+yd+'%">'+(yd>10?'X '+yd+'%':'')+'</div><div class="a" style="width:'+ya+'%">'+(ya>10?ya+'%':'')+'</div></div><div style="font-size:11px;color:#7c8aa0;display:flex;justify-content:space-between;margin-top:-4px"><span>'+m.ev+'</span><span>Beraberlik</span><span>'+m.dep+'</span></div>'+tav+guc+'</div></div>';}
   let pAI='<div class="sec">🎯 İki Tahmin — Karşılaştır</div>'+cardAI+cardTah;
-  let pIddaa='<div class="yok">İddaa oranları bu maç için henüz yok.</div>';
-  if(d.oranlar&&d.oranlar.gruplar){var fin=son0;
+  let pIddaa='<div class="yok">Bu maç için '+(USER_BM==='İddaa'?'İddaa oranı':'oran')+' bulunmuyor.</div>';
+  if(d.oranlar&&(d.oranlar.bm||{})[USER_BM]){var fin=son0;   // SADECE kullanıcının ülkesinin yasal oranı varsa göster
     var optKazandi=function(gAd,l){if(m.eg==null||m.dg==null)return false;var tot=m.eg+m.dg;
       if(gAd==='Maç Sonucu'||gAd==='Ev/Deplasman'){if(l===m.ev)return m.eg>m.dg;if(l===m.dep)return m.dg>m.eg;if(l==='Beraberlik')return m.eg===m.dg;}
       if(gAd==='Karşılıklı Gol'){if(l==='Var')return m.eg>0&&m.dg>0;if(l==='Yok')return !(m.eg>0&&m.dg>0);}
       if(gAd==='Alt/Üst Gol'){var mm=(''+l).match(/([\d.]+)/);if(!mm)return false;var ln=parseFloat(mm[1]);if((''+l).indexOf('Üst')>=0)return tot>ln;if((''+l).indexOf('Alt')>=0)return tot<ln;}
       return false;};
     var cell=function(s,gAd){var y=fin?optKazandi(gAd,s.l):s.sec;return '<div class="oddcell'+(y?' sec':'')+'"><div class="lbl">'+tr(s.l)+((y&&fin)?' ✓':'')+'</div><div class="od">'+(s.o||'-')+'</div></div>';};
-    var _bm=d.oranlar.bm||{};var _gr=_bm[USER_BM]||_bm['İddaa']||_bm['Bet365']||d.oranlar.gruplar;   // ülkeye göre: TR→İddaa, diğer→Bet365
-    var _iddaa=(_bm[USER_BM]&&USER_BM==='İddaa')||(!_bm[USER_BM]&&!_bm['Bet365']&&_bm['İddaa']);
+    var _bm=d.oranlar.bm||{};var _gr=_bm[USER_BM];   // SADECE ülkenin yasal oranı — yabancıya ASLA düşme (yasal)
+    var _iddaa=(USER_BM==='İddaa');
     pIddaa=_gr.map(function(g){return '<div class="oddsec"><div class="oh">'+g.ad+'</div><div class="oddrow">'+g.secenekler.map(function(s){return cell(s,g.ad);}).join('')+'</div></div>';}).join('')
       +'<div class="oddnote">🟢 '+(fin?'Kazanan seçim (✓)':'ciki\'nin tercihi')+' · '+(_iddaa?'İddaa oranı':(d.oranlar.canli?'Canlı piyasa oranı':'Piyasa oranı'))+' · <b>bilgi amaçlıdır, bahis oynatmıyoruz</b></div>';}
   const head='<div class="dhead"><div class="dt"><img src="'+(m.ev_logo||'')+'" onerror="this.style.visibility=\'hidden\'"><div class="nm">'+tr(m.ev)+'</div></div><div class="dmid"><div class="durum">'+durum+'</div><div class="sk">'+(son?(m.eg+'-'+m.dg):'—')+'</div><div class="komp">'+tr(m.lig)+'</div></div><div class="dt"><img src="'+(m.dep_logo||'')+'" onerror="this.style.visibility=\'hidden\'"><div class="nm">'+tr(m.dep)+'</div></div></div>';
