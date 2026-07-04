@@ -22,6 +22,11 @@ h1{font-size:19px;font-weight:900;color:#fff}h1 b{color:var(--altin)}
 .kozet .row{display:flex;justify-content:center;gap:28px;margin-top:16px}
 .kozet .row .v{font-size:20px;font-weight:800}.kozet .row .k{font-size:10px;color:#ffffff99;margin-top:1px}
 .knote{background:#fff7e6;border:1px solid #f0d98a;margin:12px;border-radius:11px;padding:11px 13px;font-size:12px;color:#5a4a1a;line-height:1.5}
+.ksek{display:flex;position:sticky;top:calc(46px + env(safe-area-inset-top,0px));z-index:4;background:#fff;border-bottom:1px solid var(--cizgi)}
+.kt{flex:1;text-align:center;padding:13px 8px;font-size:13px;font-weight:800;color:var(--dim);cursor:pointer}
+.kt.on{color:var(--kirmizi);box-shadow:inset 0 -3px 0 var(--kirmizi)}
+.ktp{display:none}.ktp.on{display:block}
+.kbos{text-align:center;color:var(--dim);padding:30px 16px;font-size:13px}
 .kpick{display:flex;align-items:center;gap:11px;background:#fff;border-bottom:1px solid var(--cizgi);padding:12px 14px}
 .kpick .durum{width:26px;text-align:center;font-size:16px}
 .kpick .info{flex:1}.kpick .info .m{font-size:11.5px;color:var(--dim);font-weight:600}.kpick .info .s{font-size:13.5px;font-weight:700;margin-top:2px}
@@ -305,7 +310,18 @@ function pushKur(){try{var C=window.Capacitor;if(!C||!C.Plugins||!C.Plugins.Push
   PN.addListener('pushNotificationActionPerformed',function(n){try{var mid=((n.notification||{}).data||{}).mac_id;if(mid)ac(parseInt(mid));}catch(e){}});
   PN.requestPermissions().then(function(r){if(r.receive==='granted')PN.register();});}catch(e){}}
 setTimeout(function(){try{pushKur();}catch(e){}},1500);
-function ligAc(h){var b=h.nextElementSibling;var kapali=b.style.display==='none';b.style.display=kapali?'':'none';var ok=h.querySelector('.ok');if(ok)ok.textContent=kapali?'▾':'▸';}
+function macRow(m){if(!m)return '';
+  const c=canli(m.durum),son=m.eg!=null,w1=m.eg>m.dg,w2=m.dg>m.eg;
+  let st= c ? '<span class="lv"><b>'+(m.durum==='HT'?'İY':(m.dk?m.dk+"'":'CANLI'))+'</b></span>' : (m.durum=='NS' ? '<span class="saat">'+m.saat+'</span>' : (durTR[m.durum]||m.durum));
+  let mid= son ? '<span class="sk'+(c?' cs':'')+'">'+m.eg+'-'+m.dg+'</span>' : '<span class="v">v</span>';
+  let hc= son?(w1?'win':(w2?'lose':'')):'', ac2= son?(w2?'win':(w1?'lose':'')):'';
+  var _fev=(m.durum==='NS'||c)?'<img class="fev'+(BILDIRIM[m.id]?' on':'')+'" src="logo.png" onclick="bildirimAc('+m.id+',event)">':'';
+  return '<div class="mc"><div class="mrow" onclick="ac('+m.id+')"><div class="st">'+st+'</div><div class="hn '+hc+'">'+tr(m.ev)+'</div><div class="mid">'+mid+'</div><div class="an '+ac2+'">'+tr(m.dep)+'</div><div class="ico ico2">'+(m.kapsam?'<span class="aibadge" onclick="acAI('+m.id+',event)">'+T.sor+'</span>':'')+_fev+'</div></div></div>';}
+var ACIK_LIG={};   // kullanıcının açtığı ligler (30sn otomatik render'da açık kalsın)
+function ligAc(h){var b=h.nextElementSibling;var kapali=b.style.display==='none';var lk=h.dataset.lk;
+  if(kapali&&b.dataset.mids&&!b.innerHTML){b.innerHTML=b.dataset.mids.split(',').map(id=>macRow(MAC[id])).join('');}  // AÇILINCA render (hız)
+  b.style.display=kapali?'':'none';if(lk){if(kapali)ACIK_LIG[lk]=1;else delete ACIK_LIG[lk];}
+  var ok=h.querySelector('.ok');if(ok)ok.textContent=kapali?'▾':'▸';}
 function bildirimAc(id,ev){ev.stopPropagation();if(!CIKI_TOKEN){girisAc();return;}BILDIRIM[id]=!BILDIRIM[id];try{localStorage.setItem('bildirim',JSON.stringify(BILDIRIM));}catch(e){}ev.target.classList.toggle('on',!!BILDIRIM[id]);
   fetch(API+'/uye/bildirim',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:CIKI_TOKEN,mac_id:id,on:BILDIRIM[id]})}).catch(function(){});}
 function bildirIcerik(ev,idx){ev.stopPropagation();if(!CIKI_TOKEN){girisAc();return;}if(!confirm('Bu içeriği uygunsuz olarak bildir? İncelenip kaldırılacak.'))return;fetch(API+'/bildir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:CIKI_TOKEN,mac_id:AKTIF_MAC,idx:idx})}).then(function(){alert('Bildirildi, teşekkürler. İçerik kaldırıldı.');ac(AKTIF_MAC);}).catch(function(){alert('Bildirildi.');});}
@@ -330,18 +346,11 @@ async function loadGun(tarih,el,sessiz){
   }
   for(const g of S){
     const _kaps=g.mac.some(m=>m.kapsam);
-    html+='<div class="gh'+(_kaps?' acik':'')+'" onclick="ligAc(this)"><span class="ok">'+(_kaps?'▾':'▸')+'</span>'+(g.logo?'<img src="'+g.logo+'">':'')+'<span class="ln">'+tr(g.lig)+'</span><span class="ct">'+tr(g.ulke)+'</span>'+(_kaps?'<span class="ligsor">🤖 Sor</span>':'')+'<span class="ligsay">'+g.mac.length+'</span></div>';
-    html+='<div class="ligmac"'+(_kaps?'':' style="display:none"')+'>';
+    const _lk=g.lig+'|'+(g.ulke||'');const _acik=_kaps||ACIK_LIG[_lk];   // kapsanan VEYA kullanıcının açtığı → 30sn render'da açık kalır
+    html+='<div class="gh'+(_acik?' acik':'')+'" data-lk="'+_lk.replace(/"/g,'')+'" onclick="ligAc(this)"><span class="ok">'+(_acik?'▾':'▸')+'</span>'+(g.logo?'<img loading="lazy" src="'+g.logo+'">':'')+'<span class="ln">'+tr(g.lig)+'</span><span class="ct">'+tr(g.ulke)+'</span>'+(_kaps?'<span class="ligsor">🤖 Sor</span>':'')+'<span class="ligsay">'+g.mac.length+'</span></div>';
     g.mac.sort((a,b)=>canli(b.durum)-canli(a.durum));
-    for(const m of g.mac){
-      const c=canli(m.durum),son=m.eg!=null,w1=m.eg>m.dg,w2=m.dg>m.eg;
-      let st= c ? '<span class="lv"><b>'+(m.durum==='HT'?'İY':(m.dk?m.dk+"'":'CANLI'))+'</b></span>' : (m.durum=='NS' ? '<span class="saat">'+m.saat+'</span>' : (durTR[m.durum]||m.durum));
-      let mid= son ? '<span class="sk'+(c?' cs':'')+'">'+m.eg+'-'+m.dg+'</span>' : '<span class="v">v</span>';
-      let hc= son?(w1?'win':(w2?'lose':'')):'', ac2= son?(w2?'win':(w1?'lose':'')):'';
-      var _fev=(m.durum==='NS'||c)?'<img class="fev'+(BILDIRIM[m.id]?' on':'')+'" src="logo.png" onclick="bildirimAc('+m.id+',event)">':'';
-      html+='<div class="mc"><div class="mrow" onclick="ac('+m.id+')"><div class="st">'+st+'</div><div class="hn '+hc+'">'+tr(m.ev)+'</div><div class="mid">'+mid+'</div><div class="an '+ac2+'">'+tr(m.dep)+'</div><div class="ico ico2">'+(m.kapsam?'<span class="aibadge" onclick="acAI('+m.id+',event)">'+T.sor+'</span>':'')+_fev+'</div></div></div>';
-    }
-    html+='</div>';
+    // KAPALI ligler render OLMAZ (sadece açık) → 568 satır yerine görünür olanlar; açılınca ligAc render eder
+    html+='<div class="ligmac"'+(_acik?'>':' data-mids="'+g.mac.map(m=>m.id).join(',')+'" style="display:none">')+(_acik?g.mac.map(macRow).join(''):'')+'</div>';
   }
   document.getElementById('liste').innerHTML=html;
 }
@@ -390,12 +399,18 @@ async function karneAc(){
   let k={};try{k=await (await fetch(API+'/data/karne.json?_='+Date.now())).json();}catch(e){}
   const o=k.ozet||{};const oran=o.toplam?Math.round(100*o.tuttu/o.toplam):0;const bko=o.banko_toplam?Math.round(100*o.banko_tuttu/o.banko_toplam):0;
   const ik={tuttu:'✅',tutmadi:'❌',bekliyor:'⏳'};
-  const picks=(k.picks||[]).map(p=>'<div class="kpick '+p.sonuc+'"><span class="durum">'+(ik[p.sonuc]||'')+'</span><div class="info"><div class="m">'+p.tarih+' · '+p.mac+'</div><div class="s">'+(p.tur==='banko'?'🔒':'💎')+' '+p.secim+'</div></div><div class="sag"><div class="o">'+p.oran+'</div><div class="sk">'+(p.skor||(p.sonuc==='bekliyor'?'bekliyor':''))+'</div></div></div>').join('');
+  const ph=p=>'<div class="kpick '+p.sonuc+'"><span class="durum">'+(ik[p.sonuc]||'')+'</span><div class="info"><div class="m">'+p.tarih+' · '+p.mac+'</div><div class="s">'+(p.tur==='banko'?'🔒':'💎')+' '+p.secim+'</div></div><div class="sag"><div class="o">'+p.oran+'</div><div class="sk">'+(p.skor||(p.sonuc==='bekliyor'?'bekliyor':''))+'</div></div></div>';
+  const byOran=(a,b)=>(parseFloat(b.oran)||0)-(parseFloat(a.oran)||0);   // yüksek oran üste
+  const bekleyen=(k.picks||[]).filter(p=>p.sonuc==='bekliyor').sort(byOran).map(ph).join('')||'<div class="kbos">Şu an sonuçlanmamış tahmin yok.</div>';
+  const biten=(k.picks||[]).filter(p=>p.sonuc!=='bekliyor').sort(byOran).map(ph).join('')||'<div class="kbos">Henüz sonuçlanan tahmin yok.</div>';
   kn.innerHTML='<div class="dbar"><span class="geri" onclick="karneKapat()">‹</span><span class="baslik">'+T.karneT+'</span><span style="width:24px"></span></div>'
     +'<div class="kozet"><div class="big">%'+oran+'</div><div class="lbl">'+T.isabet+'</div><div class="row"><div><div class="v">'+(o.tuttu||0)+'/'+(o.toplam||0)+'</div><div class="k">'+T.sonuc+'</div></div><div><div class="v">'+(o.bekleyen||0)+'</div><div class="k">'+T.bekle+'</div></div><div><div class="v">%'+bko+'</div><div class="k">Banko</div></div></div></div>'
-    +'<div class="knote">📊 Karne <b>'+(k.baslangic||'')+'</b> tarihinde başladı — şeffaf ve dürüst. Her tahmin kayıtlı; maç bitince sonuç <b>otomatik</b> işlenir (API gerçek skoru verir). <b>Tutan da tutmayan da</b> burada görünür.</div>'
-    +picks;
+    +'<div class="knote">📊 Karne <b>'+(k.baslangic||'')+'</b> tarihinde başladı — şeffaf ve dürüst. Her tahmin kayıtlı; maç bitince sonuç <b>otomatik</b> işlenir (90 dk). <b>Tutan da tutmayan da</b> burada görünür.</div>'
+    +'<div class="ksek"><div class="kt on" onclick="karneTab(\'bit\',this)">🏁 Bitmiş Tahminler</div><div class="kt" onclick="karneTab(\'bek\',this)">⏳ Sonuçlanmamış</div></div>'
+    +'<div id="kt_bit" class="ktp on">'+biten+'</div>'
+    +'<div id="kt_bek" class="ktp">'+bekleyen+'</div>';
 }
+function karneTab(key,el){document.querySelectorAll('#karne .kt').forEach(s=>s.classList.remove('on'));el.classList.add('on');document.querySelectorAll('#karne .ktp').forEach(p=>p.classList.remove('on'));document.getElementById('kt_'+key).classList.add('on');}
 function gt(key,el){document.querySelectorAll('#detay .sk2').forEach(s=>s.classList.remove('on'));el.classList.add('on');document.querySelectorAll('#detay .tp').forEach(p=>p.classList.remove('on'));document.getElementById('tp_'+key).classList.add('on');}
 function sohbetAc(){if(!CIKI_TOKEN){girisAc();return;}var i=document.getElementById('cinput');i.classList.toggle('on');if(i.classList.contains('on'))setTimeout(function(){document.getElementById('csoru').focus();},50);}
 async function sorCiki(){if(!CIKI_TOKEN){girisAc();return;}var el=document.getElementById('csoru');var q=(el.value||'').trim();if(!q)return;var c=document.getElementById('chat');
