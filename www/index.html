@@ -15,6 +15,9 @@ h1{font-size:19px;font-weight:900;color:#fff}h1 b{color:var(--altin)}
 .tag{color:#ffffffcc;font-size:10.5px;font-weight:600;margin-top:1px;display:flex;align-items:center;gap:5px}
 .karnebtn{margin-left:auto;background:#ffffff1f;color:var(--altin);border:1px solid #ffffff33;border-radius:11px;padding:9px 13px;font-size:12.5px;font-weight:800;cursor:pointer}
 #karne{position:fixed;inset:0;max-width:640px;margin:0 auto;background:var(--bg);z-index:55;overflow-y:auto;display:none}
+#karnegun{position:fixed;inset:0;max-width:640px;margin:0 auto;background:var(--bg);z-index:57;overflow-y:auto;display:none}#karnegun.on{display:block}
+.kgunbtn{display:flex;align-items:center;justify-content:space-between;background:#fff;border-bottom:1px solid var(--cizgi);padding:16px 16px;cursor:pointer}
+.kgunbtn:active{background:#f5f8fc}.kgunbtn .kgd{font-weight:800;font-size:14px;color:#16202e}.kgunbtn .kgc{font-size:12.5px;font-weight:700;color:var(--kirmizi)}
 #karne.on{display:block}
 .kozet{background:linear-gradient(135deg,#1c2c44,#0f1a2c);color:#fff;padding:22px 16px;text-align:center}
 .kozet .big{font-size:44px;font-weight:900;color:var(--altin);line-height:1}
@@ -240,6 +243,7 @@ h1{font-size:19px;font-weight:900;color:#fff}h1 b{color:var(--altin)}
 </div>
 <div id="detay"></div>
 <div id="karne"></div>
+<div id="karnegun"></div>
 <div id="toto"></div>
 <script>
 const STAT=[['Ball Possession','Topla oynama'],['expected_goals','xG'],['Total Shots','Toplam şut'],['Shots on Goal','İsabetli şut'],['Shots off Goal','İsabetsiz'],['Blocked Shots','Bloklanan'],['Shots insidebox','Ceza sahası içi'],['Corner Kicks','Korner'],['Offsides','Ofsayt'],['Fouls','Faul'],['Yellow Cards','🟨 Sarı'],['Red Cards','🟥 Kırmızı'],['Goalkeeper Saves','Kaleci kurtarış'],['Total passes','Toplam pas'],['Passes accurate','İsabetli pas'],['Passes %','Pas isabeti']];
@@ -358,7 +362,7 @@ async function loadGun(tarih,el,sessiz){
   document.getElementById('liste').innerHTML=html;
 }
 function geri(){document.getElementById('detay').classList.remove('on');document.body.style.overflow='';}
-function karneKapat(){document.getElementById('karne').classList.remove('on');document.body.style.overflow='';}
+function karneKapat(){document.getElementById('karne').classList.remove('on');document.getElementById('karnegun').classList.remove('on');document.body.style.overflow='';}
 let TOTO=null,totoSecim={},BOL=null;
 function totoKapat(){document.getElementById('toto').classList.remove('on');document.body.style.overflow='';}
 async function totoAc(){var tv=document.getElementById('toto');document.body.style.overflow='hidden';tv.scrollTop=0;
@@ -399,17 +403,25 @@ function acAI(id,e){if(e)e.stopPropagation();ac(id).then(function(){var t=docume
 var GUNAD=['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'],AYAD=['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
 function gunEtiket(t){var d=new Date(t);if(isNaN(d.getTime()))return t;var b=GUNAD[d.getDay()]+', '+d.getDate()+' '+AYAD[d.getMonth()];var bg=new Date();bg.setHours(0,0,0,0);var fark=Math.round((d-bg)/86400000);return (fark===0?'Bugün · ':(fark===1?'Yarın · ':''))+b;}
 async function karnedenAc(id,tarih){karneKapat();if(!MAC[id]&&tarih){try{await loadGun(tarih,null,true);}catch(e){}}if(MAC[id])ac(id);else alert('Maç şu an yüklenemedi, tekrar dene.');}
+var KARNE_PICKS=[],KARNE_IK={tuttu:'✅',tutmadi:'❌',bekliyor:'⏳'};
+function karneByOran(a,b){return (parseFloat(b.oran)||0)-(parseFloat(a.oran)||0);}
+function karnePickHTML(p){return '<div class="kpick '+p.sonuc+(p.id?' tikla':'')+'"'+(p.id?' onclick="karnedenAc('+p.id+',\''+(p.tam_tarih||'')+'\')"':'')+'><span class="durum">'+(KARNE_IK[p.sonuc]||'')+'</span><div class="info"><div class="m">'+(p.sonuc!=='bekliyor'?p.tarih+' · ':'')+p.mac+'</div><div class="s">'+(p.tur==='banko'?'🔒 Banko':'💎 Değer')+' · '+p.secim+'</div></div><div class="sag"><div class="o">'+p.oran+'</div><div class="sk">'+(p.skor||(p.sonuc==='bekliyor'?'›':''))+'</div></div></div>';}
+function karneGunAc(tarih){var g=document.getElementById('karnegun');
+  var pk=KARNE_PICKS.filter(function(p){return p.sonuc==='bekliyor'&&(p.tam_tarih||p.tarih)===tarih;}).sort(karneByOran);
+  g.innerHTML='<div class="dbar"><span class="geri" onclick="karneGunKapat()">‹</span><span class="baslik">📅 '+gunEtiket(tarih)+'</span><span style="width:24px"></span></div>'
+    +'<div id="karnegun_reklam"></div>'
+    +(pk.length?pk.map(karnePickHTML).join(''):'<div class="kbos">Bu güne tahmin yok.</div>');
+  g.classList.add('on');g.scrollTop=0;}
+function karneGunKapat(){document.getElementById('karnegun').classList.remove('on');}
 async function karneAc(){
   const kn=document.getElementById('karne');document.body.style.overflow='hidden';kn.scrollTop=0;
   kn.innerHTML='<div class="dbar"><span class="geri" onclick="karneKapat()">‹</span><span class="baslik">'+T.karneT+'</span><span style="width:24px"></span></div><div class="load">Yükleniyor…</div>';kn.classList.add('on');
   let k={};try{k=await (await fetch(API+'/data/karne.json?_='+Date.now())).json();}catch(e){}
   const o=k.ozet||{};const oran=o.toplam?Math.round(100*o.tuttu/o.toplam):0;const bko=o.banko_toplam?Math.round(100*o.banko_tuttu/o.banko_toplam):0;
-  const ik={tuttu:'✅',tutmadi:'❌',bekliyor:'⏳'};
-  const ph=p=>'<div class="kpick '+p.sonuc+(p.id?' tikla':'')+'"'+(p.id?' onclick="karnedenAc('+p.id+',\''+(p.tam_tarih||'')+'\')"':'')+'><span class="durum">'+(ik[p.sonuc]||'')+'</span><div class="info"><div class="m">'+(p.sonuc!=='bekliyor'?p.tarih+' · ':'')+p.mac+'</div><div class="s">'+(p.tur==='banko'?'🔒 Banko':'💎 Değer')+' · '+p.secim+'</div></div><div class="sag"><div class="o">'+p.oran+'</div><div class="sk">'+(p.skor||(p.sonuc==='bekliyor'?'›':''))+'</div></div></div>';
-  const byOran=(a,b)=>(parseFloat(b.oran)||0)-(parseFloat(a.oran)||0);   // yüksek oran üste
-  var _gun={};(k.picks||[]).filter(p=>p.sonuc==='bekliyor').forEach(function(p){var g=p.tam_tarih||p.tarih;(_gun[g]=_gun[g]||[]).push(p);});
-  const bekleyen=Object.keys(_gun).sort().map(function(g){return '<div class="kgun">📅 '+gunEtiket(g)+'</div>'+_gun[g].sort(byOran).map(ph).join('');}).join('')||'<div class="kbos">Şu an sonuçlanmamış tahmin yok.</div>';
-  const biten=(k.picks||[]).filter(p=>p.sonuc!=='bekliyor').sort(byOran).map(ph).join('')||'<div class="kbos">Henüz sonuçlanan tahmin yok.</div>';
+  KARNE_PICKS=k.picks||[];
+  var _gun={};KARNE_PICKS.filter(p=>p.sonuc==='bekliyor').forEach(function(p){var g=p.tam_tarih||p.tarih;(_gun[g]=_gun[g]||[]).push(p);});
+  const bekleyen=Object.keys(_gun).sort().map(function(g){return '<div class="kgunbtn" onclick="karneGunAc(\''+g+'\')"><span class="kgd">📅 '+gunEtiket(g)+'</span><span class="kgc">'+_gun[g].length+' tahmin ›</span></div>';}).join('')||'<div class="kbos">Şu an sonuçlanmamış tahmin yok.</div>';
+  const biten=KARNE_PICKS.filter(p=>p.sonuc!=='bekliyor').sort(karneByOran).map(karnePickHTML).join('')||'<div class="kbos">Henüz sonuçlanan tahmin yok.</div>';
   kn.innerHTML='<div class="dbar"><span class="geri" onclick="karneKapat()">‹</span><span class="baslik">'+T.karneT+'</span><span style="width:24px"></span></div>'
     +'<div class="kozet"><div class="big">%'+oran+'</div><div class="lbl">'+T.isabet+'</div><div class="row"><div><div class="v">'+(o.tuttu||0)+'/'+(o.toplam||0)+'</div><div class="k">'+T.sonuc+'</div></div><div><div class="v">'+(o.bekleyen||0)+'</div><div class="k">'+T.bekle+'</div></div><div><div class="v">%'+bko+'</div><div class="k">Banko</div></div></div></div>'
     +'<div class="knote">📊 Karne <b>'+(k.baslangic||'')+'</b> tarihinde başladı — şeffaf ve dürüst. Her tahmin kayıtlı; maç bitince sonuç <b>otomatik</b> işlenir (90 dk). <b>Tutan da tutmayan da</b> burada görünür.</div>'
