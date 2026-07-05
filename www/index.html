@@ -89,6 +89,7 @@ h1{font-size:19px;font-weight:900;color:#fff}h1 b{color:var(--altin)}
 .gunler{display:flex;gap:6px;padding:10px 12px;background:var(--kirmizi2);overflow-x:auto}
 .gn{flex:0 0 auto;text-align:center;padding:5px 12px;border-radius:9px;color:#ffffffcc;font-size:11px;font-weight:700;line-height:1.4}
 .gn.on{background:var(--altin);color:#3a2a00}.gn small{display:block;font-size:10px;opacity:.85}
+.canli-gn{background:#1faa5a;color:#fff}.canli-gn.on{background:#fff;color:#1faa5a}.canli-gn small{opacity:1}
 .gn.totogn{background:linear-gradient(135deg,var(--altin),var(--altin2));color:#3a2a00;font-weight:900;box-shadow:0 0 0 1.5px #ffffff40}
 .gh{display:flex;align-items:center;gap:9px;background:linear-gradient(180deg,var(--kirmizi),var(--kirmizi2));padding:9px 14px;margin-top:10px;cursor:pointer;user-select:none}
 .gh .ok{width:14px;color:#fff;font-size:11px;flex:none}.gh .ligsor{background:#1faa5a;color:#fff;font-size:10px;font-weight:800;padding:2px 8px;border-radius:9px}.gh .ligsay{margin-left:auto;color:#ffffffaa;font-size:11px;font-weight:700}
@@ -290,8 +291,8 @@ async function init(){
   applyDil();
   let G;try{G=await (await fetch(API+'/data/gunler.json?_='+Date.now())).json();}catch(e){G={bugun:'',gunler:[]};}
   var GUNK=['Paz','Pzt','Sal','Çar','Prş','Cum','Cmt'];
-  document.getElementById('gunler').innerHTML=G.gunler.map(function(g){var dd=(g.t||'').split('-');var wd='';try{wd=GUNK[new Date(g.t+'T12:00:00').getDay()];}catch(e){}return '<div class="gn'+(g.t===G.bugun?' on':'')+'" onclick="loadGun(\''+g.t+'\',this)"><small>'+wd+'</small>'+(dd[2]||'')+'.'+(dd[1]||'')+'</div>';}).join('');
-  loadGun(G.bugun);
+  document.getElementById('gunler').innerHTML='<div class="gn canli-gn on" onclick="canliAc(this)"><small>🔴</small>CANLI</div>'+G.gunler.map(function(g){var dd=(g.t||'').split('-');var wd='';try{wd=GUNK[new Date(g.t+'T12:00:00').getDay()];}catch(e){}return '<div class="gn" onclick="loadGun(\''+g.t+'\',this)"><small>'+wd+'</small>'+(dd[2]||'')+'.'+(dd[1]||'')+'</div>';}).join('');
+  canliAc();   // İLK açılış = CANLI sekmesi (tüm canlı maçlar)
 }
 let AKTIF_TARIH='',AKTIF_MAC=null;
 var BITEN={},ONSKOR={},ONCANLI={},GOLZ={},BILDIRIM={};try{BILDIRIM=JSON.parse(localStorage.getItem('bildirim')||'{}');}catch(e){}
@@ -335,6 +336,19 @@ function bildirimAc(id,ev){ev.stopPropagation();if(!CIKI_TOKEN){girisAc();return
   fetch(API+'/uye/bildirim',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:CIKI_TOKEN,mac_id:id,on:BILDIRIM[id]})}).catch(function(){});}
 function bildirIcerik(ev,idx){ev.stopPropagation();if(!CIKI_TOKEN){girisAc();return;}if(!confirm('Bu içeriği uygunsuz olarak bildir? İncelenip kaldırılacak.'))return;fetch(API+'/bildir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:CIKI_TOKEN,mac_id:AKTIF_MAC,idx:idx})}).then(function(){alert('Bildirildi, teşekkürler. İçerik kaldırıldı.');ac(AKTIF_MAC);}).catch(function(){alert('Bildirildi.');});}
 function golBildir(m,side){var c=document.getElementById('goltoast');if(!c)return;var atan=side==='ev'?tr(m.ev):tr(m.dep);var el=document.createElement('div');el.className='gtoast';el.innerHTML='<img src="logo.png"><div class="gt2"><div class="gt1">⚽ GOL! · '+atan+'</div><div class="gt3">'+tr(m.ev)+' <b>'+m.eg+'-'+m.dg+'</b> '+tr(m.dep)+'</div></div>';el.onclick=function(){ac(m.id);};c.appendChild(el);setTimeout(function(){el.classList.add('out');setTimeout(function(){el.remove();},400);},6000);}
+function canliRow(m,_now){var son=m.eg!=null;var bitti=['FT','AET','PEN'].indexOf(m.durum)>=0;var dkT=bitti?'MS':(m.durum==='HT'?'İY':(m.dk?m.dk+"'":'CANLI'));var gz=GOLZ[m.id];var golAk=gz&&(_now-gz.t)<40000;var evF=(golAk&&gz.s==='ev')?' golflash':'';var depF=(golAk&&gz.s==='dep')?' golflash':'';var eb=(golAk&&gz.s==='ev')?'<img class="golball" src="logo.png">':'';var db=(golAk&&gz.s==='dep')?'<img class="golball" src="logo.png">':'';return '<div class="mc'+(bitti?' bitmc':'')+(m.kapsam?' kaps':'')+'"><div class="mrow'+(bitti?' bitti':'')+'" onclick="ac('+m.id+')"><div class="st"><span class="lv"><b>'+dkT+'</b></span></div><div class="hn'+evF+'">'+eb+tr(m.ev)+'</div><div class="mid"><span class="sk'+(bitti?'':' cs')+'">'+(son?m.eg+'-'+m.dg:'-')+'</span></div><div class="an'+depF+'">'+tr(m.dep)+db+'</div><div class="ico cbico">'+(m.kapsam?'<span class="cbsor" onclick="acAI('+m.id+',event)">🤖 Sor</span>':'')+'<span class="cbliga">'+tr(m.lig)+'</span><img class="fev'+(BILDIRIM[m.id]?' on':'')+'" src="logo.png" onclick="bildirimAc('+m.id+',event)"></div></div></div>';}
+async function canliAc(el){AKTIF_TARIH='canli';
+  if(!el)el=document.querySelector('.canli-gn');
+  if(el){document.querySelectorAll('.gn').forEach(function(x){x.classList.remove('on');});el.classList.add('on');}
+  var lst=document.getElementById('liste');if(!lst.querySelector('.canlibar'))lst.innerHTML='<div class="load">Canlı maçlar…</div>';
+  var bg=new Date();var tarihler=[];for(var i=-1;i<=2;i++){var dd=new Date(bg);dd.setDate(dd.getDate()+i);tarihler.push(dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0'));}
+  var hepsi=[],gor={};
+  for(var ti=0;ti<tarihler.length;ti++){try{var fx=await (await fetch(API+'/data/fikstur_'+tarihler[ti]+'.json?_='+Date.now())).json();for(var mi=0;mi<fx.maclar.length;mi++){var mm=fx.maclar[mi];MAC[mm.id]=mm;if(!gor[mm.id]){gor[mm.id]=1;hepsi.push(mm);}}}catch(e){}}
+  if(AKTIF_TARIH!=='canli')return;
+  var _now=Date.now();
+  for(var k=0;k<hepsi.length;k++){var m=hepsi[k];if(m.eg!=null){var _pe=ONSKOR[m.id];if(_pe&&((+m.eg)+(+m.dg))>(_pe.e+_pe.d)){var _s=((+m.eg)>_pe.e)?'ev':'dep';GOLZ[m.id]={t:_now,s:_s};golBildir(m,_s);}ONSKOR[m.id]={e:+m.eg,d:+m.dg};}if(canli(m.durum))ONCANLI[m.id]=true;if(['FT','AET','PEN'].indexOf(m.durum)>=0&&ONCANLI[m.id]&&!BITEN[m.id])BITEN[m.id]=_now;}
+  var canliMac=hepsi.filter(function(m){return canli(m.durum)||(BITEN[m.id]&&(_now-BITEN[m.id])<300000);}).sort(function(a,b){return (!!b.kapsam-!!a.kapsam)||(canli(b.durum)-canli(a.durum))||((b.dk||0)-(a.dk||0));});
+  lst.innerHTML=canliMac.length?('<div class="canlibar"><div class="cbh">🔴 CANLI · '+canliMac.length+' maç oynanıyor</div>'+canliMac.map(function(m){return canliRow(m,_now);}).join('')+'</div>'):'<div class="kbos" style="margin-top:40px">🔴 Şu an canlı maç yok.<br><small style="color:#8593a5">Gün sekmelerinden maçlara bak.</small></div>';}
 async function loadGun(tarih,el,sessiz){
   AKTIF_TARIH=tarih;
   if(el){document.querySelectorAll('.gn').forEach(function(x){x.classList.remove('on');});el.classList.add('on');}
@@ -349,10 +363,7 @@ async function loadGun(tarih,el,sessiz){
     if(canli(m.durum))ONCANLI[m.id]=true;
     if(['FT','AET','PEN'].indexOf(m.durum)>=0&&ONCANLI[m.id]&&!BITEN[m.id])BITEN[m.id]=_now;   // sadece CANLIYKEN izlenip biten 5dk kalır
   }
-  var canliMac=fx.maclar.filter(function(m){return canli(m.durum)||(BITEN[m.id]&&(_now-BITEN[m.id])<300000);}).sort(function(a,b){return (!!b.kapsam-!!a.kapsam)||(canli(b.durum)-canli(a.durum))||((b.dk||0)-(a.dk||0));});   // ciki(Sor) maçlar üste, sonra canlı/bitmiş
-  if(canliMac.length){
-    html+='<div class="canlibar"><div class="cbh">🔴 CANLI · '+canliMac.length+' maç oynanıyor</div>'+canliMac.map(function(m){var son=m.eg!=null;var bitti=['FT','AET','PEN'].indexOf(m.durum)>=0;var dkT=bitti?'MS':(m.durum==='HT'?'İY':(m.dk?m.dk+"'":'CANLI'));var gz=GOLZ[m.id];var golAk=gz&&(_now-gz.t)<40000;var evF=(golAk&&gz.s==='ev')?' golflash':'';var depF=(golAk&&gz.s==='dep')?' golflash':'';var eb=(golAk&&gz.s==='ev')?'<img class="golball" src="logo.png">':'';var db=(golAk&&gz.s==='dep')?'<img class="golball" src="logo.png">':'';return '<div class="mc'+(bitti?' bitmc':'')+(m.kapsam?' kaps':'')+'"><div class="mrow'+(bitti?' bitti':'')+'" onclick="ac('+m.id+')"><div class="st"><span class="lv"><b>'+dkT+'</b></span></div><div class="hn'+evF+'">'+eb+tr(m.ev)+'</div><div class="mid"><span class="sk'+(bitti?'':' cs')+'">'+(son?m.eg+'-'+m.dg:'-')+'</span></div><div class="an'+depF+'">'+tr(m.dep)+db+'</div><div class="ico cbico">'+(m.kapsam?'<span class="cbsor" onclick="acAI('+m.id+',event)">🤖 Sor</span>':'')+'<span class="cbliga">'+tr(m.lig)+'</span><img class="fev'+(BILDIRIM[m.id]?' on':'')+'" src="logo.png" onclick="bildirimAc('+m.id+',event)"></div></div></div>';}).join('')+'</div>';
-  }
+  // canlı bar KALDIRILDI → artık ayrı "🔴 CANLI" sekmesinde (canliAc)
   for(const g of S){
     const _kaps=g.mac.some(m=>m.kapsam);
     const _lk=g.lig+'|'+(g.ulke||'');const _acik=_kaps||ACIK_LIG[_lk];   // kapsanan VEYA kullanıcının açtığı → 30sn render'da açık kalır
@@ -574,7 +585,7 @@ async function canliGuncelle(){
     }
     return;
   }
-  var wy=window.scrollY;loadGun(AKTIF_TARIH,null,true).then(function(){window.scrollTo(0,wy);});
+  var wy=window.scrollY;(AKTIF_TARIH==='canli'?canliAc():loadGun(AKTIF_TARIH,null,true)).then(function(){window.scrollTo(0,wy);});
 }
 setInterval(canliGuncelle,30000);
 init();
