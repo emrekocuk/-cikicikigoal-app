@@ -527,7 +527,7 @@ async function ac(id){
     cardAI='<div class="pcard ai"><div class="ph"><span class="av ai">🤖</span>ciki · Uzman Analist<span class="badge a">AI</span></div><div class="body">'+a.analiz+'</div>'+formH
       +(a.banko?'<div class="pick"><span class="pb bk">🔒 BANKO</span><span class="pn2">'+a.banko.secim+'<small>%'+a.banko.guven+' güven · yüksek tutma</small></span><span class="po">'+a.banko.oran+'</span></div>':'')
       +(a.deger?'<div class="pick"><span class="pb dg">💎 DEĞER</span><span class="pn2">'+a.deger.secim+'<small>%'+a.deger.guven+' güven · yüksek oran</small></span><span class="po">'+a.deger.oran+'</span></div>':'')
-      +'<div class="mini">Yapay zeka analizidir · kesin değildir · bahis tavsiyesi değildir</div>'
+      +'<div class="mini">Yapay zeka analizidir · <b>oranlar yorum anında'+(a.zaman?' ('+a.zaman+')':'')+' alınmıştır, değişebilir</b> — güncel oran İddaa sekmesinde · bahis tavsiyesi değildir</div>'
       +(a.sorular||[]).map(q=>'<details class="aq"><summary>✦ '+q.s+'</summary><div class="ac">'+q.c+'</div></details>').join('')
       +sohbetH+'</div>';
   }else{
