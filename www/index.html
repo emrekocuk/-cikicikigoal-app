@@ -433,7 +433,6 @@ function karnePickHTML(p){return '<div class="kpick '+p.sonuc+(p.id?' tikla':'')
 function karneGunAc(tarih){var g=document.getElementById('karnegun');
   var pk=KARNE_PICKS.filter(function(p){return p.sonuc==='bekliyor'&&(p.tam_tarih||p.tarih)===tarih;}).sort(karneByOran);
   g.innerHTML='<div class="dbar"><span class="geri" onclick="karneGunKapat()">‹</span><span class="baslik">📅 '+gunEtiket(tarih)+'</span><span style="width:24px"></span></div>'
-    +'<div id="karnegun_reklam"></div>'
     +(pk.length?pk.map(karnePickHTML).join(''):'<div class="kbos">Bu güne tahmin yok.</div>');
   g.classList.add('on');g.scrollTop=0;}
 function karneGunKapat(){document.getElementById('karnegun').classList.remove('on');}
