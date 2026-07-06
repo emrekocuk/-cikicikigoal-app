@@ -351,7 +351,8 @@ async function canliAc(el){AKTIF_TARIH='canli';
   if(canliMac.length){
     lst.innerHTML='<div class="canlibar"><div class="cbh">🔴 CANLI · '+canliMac.length+' maç oynanıyor</div>'+canliMac.map(function(m){return canliRow(m,_now);}).join('')+'</div>';
   } else {
-    var yakl=hepsi.filter(function(m){return m.durum==='NS'&&(m._tarih||'')>=tarihler[1];}).sort(function(a,b){var ka=(a._tarih||'')+(a.saat||'99:99'),kb=(b._tarih||'')+(b.saat||'99:99');return ka<kb?-1:1;}).slice(0,30);
+    var _simdi=new Date();
+    var yakl=hepsi.filter(function(m){if(m.durum!=='NS'||!m._tarih)return false;var mt=new Date(m._tarih+'T'+(m.saat||'00:00')+':00');return !isNaN(mt.getTime())&&mt>_simdi;}).sort(function(a,b){var ka=(a._tarih||'')+(a.saat||'99:99'),kb=(b._tarih||'')+(b.saat||'99:99');return ka<kb?-1:1;}).slice(0,30);
     if(yakl.length){
       var _kg=function(t){var d=new Date(t);var bg=new Date();bg.setHours(0,0,0,0);var f=Math.round((d-bg)/86400000);return f===0?'Bugün':(f===1?'Yarın':(d.getDate()+'.'+(d.getMonth()+1)));};
       lst.innerHTML='<div class="canlibar"><div class="cbh" style="background:#5b6b82">⏳ Şu an canlı maç yok · BAŞLAMAYA YAKIN maçlar</div>'+yakl.map(function(m){return '<div class="mc'+(m.kapsam?' kaps':'')+'"><div class="mrow" onclick="ac('+m.id+')"><div class="st" style="min-width:44px"><span class="lv" style="color:#5b6b82;line-height:1.1"><b>'+_kg(m._tarih)+'</b><br><small style="font-size:9px">'+(m.saat||'—')+'</small></span></div><div class="hn">'+tr(m.ev)+'</div><div class="mid"><span class="sk">vs</span></div><div class="an">'+tr(m.dep)+'</div><div class="ico cbico">'+(m.kapsam?'<span class="cbsor" onclick="acAI('+m.id+',event)">🤖 Sor</span>':'')+'<span class="cbliga">'+tr(m.lig)+'</span></div></div></div>';}).join('')+'</div>';
