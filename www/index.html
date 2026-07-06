@@ -348,7 +348,16 @@ async function canliAc(el){AKTIF_TARIH='canli';
   var _now=Date.now();
   for(var k=0;k<hepsi.length;k++){var m=hepsi[k];if(m.eg!=null){var _pe=ONSKOR[m.id];if(_pe&&((+m.eg)+(+m.dg))>(_pe.e+_pe.d)){var _s=((+m.eg)>_pe.e)?'ev':'dep';GOLZ[m.id]={t:_now,s:_s};golBildir(m,_s);}ONSKOR[m.id]={e:+m.eg,d:+m.dg};}if(canli(m.durum))ONCANLI[m.id]=true;if(['FT','AET','PEN'].indexOf(m.durum)>=0&&ONCANLI[m.id]&&!BITEN[m.id])BITEN[m.id]=_now;}
   var canliMac=hepsi.filter(function(m){return canli(m.durum)||(BITEN[m.id]&&(_now-BITEN[m.id])<300000);}).sort(function(a,b){return (!!b.kapsam-!!a.kapsam)||(canli(b.durum)-canli(a.durum))||((b.dk||0)-(a.dk||0));});
-  lst.innerHTML=canliMac.length?('<div class="canlibar"><div class="cbh">🔴 CANLI · '+canliMac.length+' maç oynanıyor</div>'+canliMac.map(function(m){return canliRow(m,_now);}).join('')+'</div>'):'<div class="kbos" style="margin-top:40px">🔴 Şu an canlı maç yok.<br><small style="color:#8593a5">Gün sekmelerinden maçlara bak.</small></div>';}
+  if(canliMac.length){
+    lst.innerHTML='<div class="canlibar"><div class="cbh">🔴 CANLI · '+canliMac.length+' maç oynanıyor</div>'+canliMac.map(function(m){return canliRow(m,_now);}).join('')+'</div>';
+  } else {
+    var yakl=hepsi.filter(function(m){return m.durum==='NS';}).sort(function(a,b){return (!!b.kapsam-!!a.kapsam)||((a.saat||'99:99')<(b.saat||'99:99')?-1:1);}).slice(0,25);
+    if(yakl.length){
+      lst.innerHTML='<div class="canlibar"><div class="cbh" style="background:#5b6b82">⏳ Şu an canlı maç yok · BAŞLAMAYA YAKIN</div>'+yakl.map(function(m){return '<div class="mc'+(m.kapsam?' kaps':'')+'"><div class="mrow" onclick="ac('+m.id+')"><div class="st"><span class="lv" style="color:#5b6b82"><b>'+(m.saat||'—')+'</b></span></div><div class="hn">'+tr(m.ev)+'</div><div class="mid"><span class="sk">vs</span></div><div class="an">'+tr(m.dep)+'</div><div class="ico cbico">'+(m.kapsam?'<span class="cbsor" onclick="acAI('+m.id+',event)">🤖 Sor</span>':'')+'<span class="cbliga">'+tr(m.lig)+'</span></div></div></div>';}).join('')+'</div>';
+    } else {
+      lst.innerHTML='<div class="kbos" style="margin-top:40px">🔴 Şu an canlı ya da yaklaşan maç yok.<br><small style="color:#8593a5">Gün sekmelerinden maçlara bak.</small></div>';
+    }
+  }}
 async function loadGun(tarih,el,sessiz){
   AKTIF_TARIH=tarih;
   if(el){document.querySelectorAll('.gn').forEach(function(x){x.classList.remove('on');});el.classList.add('on');}
