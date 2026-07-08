@@ -276,7 +276,7 @@ function onem(l,u){l=(l||'').toLowerCase();u=(u||'').toLowerCase();
 function kapsam(l,u){return onem(l,u)<40;}
 const sonad=n=>{const p=(n||'').trim().split(' ');return p[p.length-1].toLowerCase();};
 const kisa=n=>{const p=(n||'').trim().split(' ');return p[p.length-1];};
-function ikon(olay,ad){const s=sonad(ad);let r='';for(const o of(olay||[])){if(sonad(o.oyuncu)!==s)continue;if(o.tur==='Goal')r+=(o.detay==='Own Goal'?'🔴':'⚽');else if(o.tur==='Card')r+=((o.detay||'').includes('Yellow')?'🟨':'🟥');}return r;}
+function ikon(olay,ad){const s=sonad(ad);let r='';for(const o of(olay||[])){if(sonad(o.oyuncu)!==s)continue;if(o.tur==='Goal'&&o.detay!=='Missed Penalty')r+=(o.detay==='Own Goal'?'🔴':'⚽');else if(o.tur==='Card')r+=((o.detay||'').includes('Yellow')?'🟨':'🟥');}return r;}
 const PITCH='<svg class="pitch" viewBox="0 0 680 1050" preserveAspectRatio="none">'
  +'<g stroke="#ffffff45" stroke-width="3" fill="none">'
  +'<rect x="8" y="8" width="664" height="1034" rx="6"/><line x1="8" y1="525" x2="672" y2="525"/><circle cx="340" cy="525" r="92"/>'
@@ -502,7 +502,11 @@ async function ac(id){
   // starter setleri (değişiklik yönü için)
   const ilkS={};for(const k of (d.kadro||[]))ilkS[k.tk]=new Set((k.ilk11||[]).map(p=>sonad(p.ad)));
   // maç akışı timeline
-  const tl=olay.filter(o=>['Goal','Card','subst'].includes(o.tur)).sort((a,b)=>(a.dk||0)-(b.dk||0));
+  const tl=olay.filter(o=>['Goal','Card','subst','MissedPen'].includes(o.tur)).sort((a,b)=>(a.dk||0)-(b.dk||0));
+  var _sd=d.skor_detay||{};var _sp=function(o){return (o&&o.home!=null)?(o.home+'-'+o.away):null;};
+  var _penR=(_sd.pen&&_sd.pen.home!=null)?('PEN '+_sd.pen.home+'-'+_sd.pen.away):'';
+  var _skAlt=[];if(_sp(_sd.iy))_skAlt.push('İY '+_sp(_sd.iy));if(_sp(_sd.ms))_skAlt.push('MS '+_sp(_sd.ms));if(_sd.uz&&_sd.uz.home!=null)_skAlt.push('UZ '+_sp(_sd.uz));
+  var penaltiH='';if(d.penalti_atis&&d.penalti_atis.length){var _eh=0,_ah=0;penaltiH='<div class="sec">🥅 Penaltı Atışları'+(_penR?' · '+_penR:'')+'</div><div class="tl">'+d.penalti_atis.map(function(a){var hm=(a.tk===m.ev);if(a.gol){if(hm)_eh++;else _ah++;}var pc='<span class="ei">'+(a.gol?'⚽':'🚫')+'</span> <b>'+kisa(a.oyuncu)+'</b>';return '<div class="te"><div class="eh">'+(hm?pc:'')+'</div><div class="dk" style="font-size:12px">'+_eh+'-'+_ah+'</div><div class="ea">'+(hm?'':pc)+'</div></div>';}).join('')+'</div>';}
   var gecmisHTML='';
   var frow=function(x){var c=x.sonuc==='G'?'g':(x.sonuc==='M'?'m':'b');return '<div class="frow"><span class="fdate">'+(x.t||'').slice(5)+'</span><span class="frak">'+tr(x.rak)+'</span><span class="fsc">'+x.sk+'</span><span class="fdot '+c+'">'+x.sonuc+'</span></div>';};
   if(d.form&&d.form.ev&&d.form.ev.length)gecmisHTML+='<div class="sec">📊 '+m.ev+' — Son Maçlar</div>'+d.form.ev.map(frow).join('');
@@ -511,12 +515,14 @@ async function ac(id){
   var yorumH=d.canli_yorum?('<div class="aihero"><div class="q"><span class="av ai">🤖</span>ciki · Canlı Yorum ('+d.canli_yorum.dk+"')</div><div class=\"txt\">"+d.canli_yorum.metin+'</div></div>'):'';
   let pDetay=yorumH+mvpH+(tl.length?('<div class="sec">📋 Maç Akışı</div><div class="tl">'+tl.map(o=>{
     let ic,txt;
-    if(o.tur==='Goal'){ic=o.detay==='Own Goal'?'🔴':'⚽';txt='<b>'+kisa(o.oyuncu)+'</b>'+(o.asist?' <span class="as">('+kisa(o.asist)+')</span>':'');}
+    if(o.tur==='Goal'){ic=o.detay==='Own Goal'?'🔴':'⚽';txt='<b>'+kisa(o.oyuncu)+'</b>'+(o.detay==='Penalty'?' <span class="as">(P)</span>':'')+(o.asist?' <span class="as">('+kisa(o.asist)+')</span>':'');}
+    else if(o.tur==='MissedPen'){ic='🚫';txt='<b>'+kisa(o.oyuncu)+'</b> <span class="as" style="color:#b3122a">penaltı kaçırdı</span>';}
     else if(o.tur==='Card'){ic=(o.detay||'').includes('Yellow')?'🟨':'🟥';txt=kisa(o.oyuncu);}
     else{ic='🔄';const st=ilkS[o.tk];let inN,outN;if(st&&st.has(sonad(o.oyuncu))){outN=o.oyuncu;inN=o.asist;}else{outN=o.asist;inN=o.oyuncu;}txt='<span style="color:#1faa5a">↑'+kisa(inN)+'</span> <span style="color:#b3122a">↓'+kisa(outN)+'</span>';}
     const cell='<span class="ei">'+ic+'</span> '+txt;const home=(o.tk===m.ev);
     return '<div class="te"><div class="eh">'+(home?cell:'')+'</div><div class="dk">'+(o.dk||0)+"'</div><div class=\"ea\">"+(home?'':cell)+'</div></div>';
   }).join('')+'</div>'):(gecmisHTML||'<div class="yok">'+(m.durum==='NS'?'Maç henüz başlamadı.':'Bu maç için detaylı akış bulunmuyor.')+'</div>'));
+  pDetay=pDetay+penaltiH;
   var sakatH=(d.sakatlar&&d.sakatlar.length)?('<div class="sec">🚑 Sakat / Cezalı</div>'+d.sakatlar.map(function(s){return '<div class="pl"><span class="pn">'+s.ad+' <span style="color:#7c8aa0">('+s.tk+')</span></span><span class="ev" style="color:#b3122a">'+(s.tip||s.sebep||'')+'</span></div>';}).join('')):'<div class="subh" style="text-align:center;color:#9aa7b8">Sakat/cezalı bilgisi bu maçta yok</div>';
   var kadroMsj=(m.durum==='NS')?'İlk 11 maça ~1 saat kala açıklanır; o zamana dek tahmini kadro gösterilir.':'Bu maç için kadro bilgisi bulunmuyor.';
   let pKadro='<div class="yok">'+kadroMsj+'</div>'+sakatH;
@@ -572,7 +578,7 @@ async function ac(id){
     var _iddaa=(USER_BM==='İddaa');
     pIddaa=_gr.map(function(g){return '<div class="oddsec"><div class="oh">'+g.ad+'</div><div class="oddrow">'+g.secenekler.map(function(s){return cell(s,g.ad);}).join('')+'</div></div>';}).join('')
       +'<div class="oddnote">🟢 '+(fin?'Kazanan seçim (✓)':'ciki\'nin tercihi')+' · '+(_iddaa?'İddaa oranı':(d.oranlar.canli?'Canlı piyasa oranı':'Piyasa oranı'))+' · <b>bilgi amaçlıdır, bahis oynatmıyoruz</b></div>';}
-  const head='<div class="dhead"><div class="dt"><img src="'+(m.ev_logo||'')+'" onerror="this.style.visibility=\'hidden\'"><div class="nm">'+tr(m.ev)+'</div></div><div class="dmid"><div class="durum">'+durum+'</div><div class="sk">'+(son?(m.eg+'-'+m.dg):'—')+'</div><div class="komp">'+tr(m.lig)+'</div></div><div class="dt"><img src="'+(m.dep_logo||'')+'" onerror="this.style.visibility=\'hidden\'"><div class="nm">'+tr(m.dep)+'</div></div></div>';
+  const head='<div class="dhead"><div class="dt"><img src="'+(m.ev_logo||'')+'" onerror="this.style.visibility=\'hidden\'"><div class="nm">'+tr(m.ev)+'</div></div><div class="dmid">'+(_penR?'<div style="font-size:12px;font-weight:800;color:#d4a017;letter-spacing:.5px">'+_penR+'</div>':'')+'<div class="durum">'+durum+'</div><div class="sk">'+(son?(m.eg+'-'+m.dg):'—')+'</div>'+(_skAlt.length?'<div style="font-size:10px;color:#8593a5;margin-top:2px">('+_skAlt.join(') (')+')</div>':'')+'<div class="komp">'+tr(m.lig)+'</div></div><div class="dt"><img src="'+(m.dep_logo||'')+'" onerror="this.style.visibility=\'hidden\'"><div class="nm">'+tr(m.dep)+'</div></div></div>';
   const tabs=[['detay',T.detay,pDetay],['kadro',T.kadro,pKadro],['istat',T.istat,pIstat],['ai',T.tahmin,pAI],['iddaa',T.iddaa,pIddaa]];
   const varsayilan=(d.ai&&olay.length===0)?'ai':'detay';
   det.innerHTML='<div class="dbar"><span class="geri" onclick="geri()">‹</span><span class="baslik">'+tr(m.ev)+' - '+tr(m.dep)+'</span><span style="width:24px"></span></div>'+head
