@@ -235,8 +235,27 @@ h1{font-size:19px;font-weight:900;color:#fff}h1 b{color:var(--altin)}
 .te .as{color:var(--dim);font-size:11px}.ei{font-size:14px;vertical-align:middle}
 .yok{color:var(--dim);font-size:13px;text-align:center;padding:22px}
 .load{color:var(--dim);text-align:center;padding:26px;font-size:13px}
+.kupwrap{padding:12px}
+.kuptop{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;font-weight:800;margin:4px 2px 10px;text-align:center}
+.kup{border-radius:16px;overflow:hidden;background:linear-gradient(180deg,#182338,#0f1826);border:1px solid var(--cizgi);margin-bottom:10px;cursor:pointer}
+.kup::before{content:"";display:block;height:2px;background:linear-gradient(90deg,transparent,var(--acc),transparent);opacity:.65}
+.khead{display:flex;align-items:center;gap:10px;padding:13px}
+.krozet{font-size:11px;font-weight:900;color:#06121e;padding:6px 10px;border-radius:8px;background:var(--acc);white-space:nowrap}
+.kozet{flex:1;font-size:12px;color:#9fb0cc;font-weight:700}
+.kchev{font-size:20px;color:#8a9cbb;transition:transform .25s}
+.kup.on .kchev{transform:rotate(90deg);color:var(--acc)}
+.koran{text-align:right;font-size:21px;font-weight:900;color:#f2c94c;line-height:1;font-variant-numeric:tabular-nums}
+.koran span{display:block;font-size:8px;color:#8494b0;letter-spacing:1px;margin-top:2px}
+.kbody{max-height:0;overflow:hidden;transition:max-height .3s;padding:0 13px}
+.kup.on .kbody{max-height:640px;padding-bottom:11px}
+.kozetf{font-size:12px;color:#c3d0e8;font-style:italic;padding:3px 0 7px;opacity:.9}
+.kbrow{display:flex;align-items:center;gap:9px;padding:8px 0;border-top:1px solid rgba(150,180,230,.14)}
+.kbmac{flex:1;font-size:12px;color:#e6edf8}.kbmac b{font-weight:800;color:#fff}
+.kbsec{text-align:right;font-size:13px;font-weight:900;white-space:nowrap}
+.kbsec em{display:block;font-size:10px;color:#9aa8c2;font-weight:600;font-style:normal;margin-top:1px;font-variant-numeric:tabular-nums}
+.kupfoot{font-size:11px;color:var(--dim);text-align:center;padding:14px;line-height:1.5}
 </style></head><body><div class="wrap">
-<header><img src="logo.png"><div><h1>ciki<b>ciki</b>goal</h1><div class="tag"><span class="dot"></span> CANLI SKOR · YAPAY ZEKA</div></div><button class="karnebtn" onclick="karneAc()" style="margin-left:auto">🏆 Karne</button><button class="karnebtn" onclick="hesapAc()">👤</button></header>
+<header><img src="logo.png"><div><h1>ciki<b>ciki</b>goal</h1><div class="tag"><span class="dot"></span> CANLI SKOR · YAPAY ZEKA</div></div><button class="karnebtn" onclick="kuponAc()" style="margin-left:auto">🎯 Kupon</button><button class="karnebtn" onclick="karneAc()">🏆 Karne</button><button class="karnebtn" onclick="hesapAc()">👤</button></header>
 <div class="gunler" id="gunler"></div>
 <div id="goltoast"></div>
 <div id="hesapModal" class="gmodal"><div class="gbox"><div class="gkapat" onclick="document.getElementById('hesapModal').classList.remove('on')">✕</div><div id="hesapIc"></div></div></div>
@@ -254,7 +273,9 @@ const durTR={FT:'MS',AET:'Uzt',PEN:'Pen',HT:'İY',PST:'Ert.',CANC:'İptal',SUSP:
 const DILLER={
  tr:{canli:'CANLI SKOR · YAPAY ZEKA',karne:'🏆 Karne',detay:'Detay',kadro:'Kadro',istat:'İstatistik',tahmin:'🎯 Tahminler',iddaa:'İddaa',sor:'🤖 Sor',disc:'Analiz ve eğlence amaçlıdır · Tahminler kesin değildir',karneT:'🏆 AI Karnesi',isabet:'GENEL İSABET',sonuc:'Sonuçlanan',bekle:'Bekleyen',sorBtn:"💬 ciki'ye Sor",ph:'Bu maç hakkında bir şey sor...'},
  en:{canli:'LIVE SCORES · AI',karne:'🏆 Record',detay:'Summary',kadro:'Lineup',istat:'Stats',tahmin:'🎯 Predictions',iddaa:'Odds',sor:'🤖 Ask',disc:'For analysis & entertainment · Predictions are not guaranteed',karneT:'🏆 AI Record',isabet:'HIT RATE',sonuc:'Settled',bekle:'Pending',sorBtn:'💬 Ask ciki',ph:'Ask something about this match...'},
- ja:{canli:'ライブスコア · AI',karne:'🏆 成績',detay:'概要',kadro:'ラインナップ',istat:'スタッツ',tahmin:'🎯 予想',iddaa:'オッズ',sor:'🤖 質問',disc:'分析・娯楽目的です · 予想は確実ではありません',karneT:'🏆 AI成績',isabet:'的中率',sonuc:'確定',bekle:'保留',sorBtn:'💬 cikiに質問',ph:'この試合について質問...'}
+ ja:{canli:'ライブスコア · AI',karne:'🏆 成績',detay:'概要',kadro:'ラインナップ',istat:'スタッツ',tahmin:'🎯 予想',iddaa:'オッズ',sor:'🤖 質問',disc:'分析・娯楽目的です · 予想は確実ではありません',karneT:'🏆 AI成績',isabet:'的中率',sonuc:'確定',bekle:'保留',sorBtn:'💬 cikiに質問',ph:'この試合について質問...'},
+ fr:{canli:'SCORES EN DIRECT · IA',karne:'🏆 Bilan',detay:'Résumé',kadro:'Composition',istat:'Stats',tahmin:'🎯 Pronostics',iddaa:'Cotes',sor:'🤖 Demander',disc:'Pour analyse et divertissement · pronostics non garantis',karneT:'🏆 Bilan IA',isabet:'TAUX DE RÉUSSITE',sonuc:'Terminés',bekle:'En attente',sorBtn:'💬 Demander à ciki',ph:'Posez une question sur ce match...'},
+ es:{canli:'MARCADORES EN VIVO · IA',karne:'🏆 Historial',detay:'Resumen',kadro:'Alineación',istat:'Estadísticas',tahmin:'🎯 Pronósticos',iddaa:'Cuotas',sor:'🤖 Preguntar',disc:'Para análisis y entretenimiento · pronósticos no garantizados',karneT:'🏆 Historial IA',isabet:'TASA DE ACIERTO',sonuc:'Finalizados',bekle:'Pendientes',sorBtn:'💬 Preguntar a ciki',ph:'Pregunta algo sobre este partido...'}
 };
 let DIL=(navigator.language||'en').slice(0,2);
 try{if((Intl.DateTimeFormat().resolvedOptions().timeZone||'')==='Europe/Istanbul')DIL='tr';}catch(e){}  // Türkiye'den girene Türkçe
@@ -389,6 +410,49 @@ function geri(){document.getElementById('detay').classList.remove('on');document
 function karneKapat(){document.getElementById('karne').classList.remove('on');document.getElementById('karnegun').classList.remove('on');document.body.style.overflow='';}
 let TOTO=null,totoSecim={},BOL=null;
 function totoKapat(){document.getElementById('toto').classList.remove('on');document.body.style.overflow='';}
+var KUPRENK={banko:'#25d07d',sistem:'#f2c94c',ev:'#f2c94c',dep:'#a07bff',bera:'#8a9cbb',alt:'#4fb0ff',ust:'#ff9a3c',ust35:'#ff6b3c',surpriz:'#ff5d73'};
+var KUPGRENK={saglam:'#25d07d',dengeli:'#f2c94c',iddiali:'#ff9a3c'};
+var SEC={'1':'1','X':'X','2':'2',alt25:'2.5 U',ust25:'2.5 O',ust35:'3.5 O'};
+function kupGuven(t){return t>=22?'saglam':(t>=12?'dengeli':'iddiali');}
+var KUPD={
+ tr:{baslik:'🎯 Günün Kuponları',kuptop:'Avrupa · {n} kupon · ciki yapay zeka',mac:'maç',oran:'ORAN',foot:'Analiz ve eğlence amaçlıdır · bahis tavsiyesi değildir · 17+',tip:{banko:'BANKO',sistem:'SİSTEM 6',ev:'EV SAHİBİ',dep:'DEPLASMAN',bera:'BERABERLİK',alt:'2.5 ALT',ust:'2.5 ÜST',ust35:'3.5 ÜST',surpriz:'SÜRPRİZ'},tema:{banko:'En emin çağrılar',sistem:'Yüksek oran sistemi',ev:'Sahasında güçlü ev sahipleri',dep:'Deplasmanda kazananlar',bera:'Cesur beraberlikler',alt:'Gol az — 2.5 alt',ust:'Gol bol — 2.5 üst',ust35:'Gol şöleni — 3.5 üst',surpriz:'Yüksek oran sürprizi'},guven:{saglam:'SAĞLAM',dengeli:'DENGELİ',iddiali:'İDDİALI'}},
+ en:{baslik:'🎯 Coupons of the Day',kuptop:'Europe · {n} coupons · ciki AI',mac:'matches',oran:'ODDS',foot:'For analysis & entertainment · not betting advice · 17+',tip:{banko:'BANKER',sistem:'SYSTEM 6',ev:'HOME WINS',dep:'AWAY WINS',bera:'DRAWS',alt:'UNDER 2.5',ust:'OVER 2.5',ust35:'OVER 3.5',surpriz:'SURPRISE'},tema:{banko:'Safest calls',sistem:'High-odds system',ev:'Strong home sides',dep:'Away winners',bera:'Bold draws',alt:'Few goals — under 2.5',ust:'Goals galore — over 2.5',ust35:'Goal feast — over 3.5',surpriz:'High-odds surprise'},guven:{saglam:'SOLID',dengeli:'BALANCED',iddiali:'BOLD'}},
+ fr:{baslik:'🎯 Coupons du Jour',kuptop:'Europe · {n} coupons · ciki IA',mac:'matchs',oran:'COTE',foot:'Pour analyse et divertissement · pas un conseil de pari · 17+',tip:{banko:'SÛR',sistem:'SYSTÈME 6',ev:'DOMICILE',dep:'EXTÉRIEUR',bera:'MATCHS NULS',alt:'MOINS 2.5',ust:'PLUS 2.5',ust35:'PLUS 3.5',surpriz:'SURPRISE'},tema:{banko:'Les plus sûrs',sistem:'Système à forte cote',ev:'Équipes fortes à domicile',dep:'Vainqueurs en déplacement',bera:'Nuls audacieux',alt:'Peu de buts — moins 2.5',ust:'Beaucoup de buts — plus 2.5',ust35:'Festival de buts — plus 3.5',surpriz:'Surprise à forte cote'},guven:{saglam:'SOLIDE',dengeli:'ÉQUILIBRÉ',iddiali:'AUDACIEUX'}},
+ es:{baslik:'🎯 Cupones del Día',kuptop:'Europa · {n} cupones · ciki IA',mac:'partidos',oran:'CUOTA',foot:'Para análisis y entretenimiento · no es consejo de apuestas · 17+',tip:{banko:'SEGURO',sistem:'SISTEMA 6',ev:'LOCAL',dep:'VISITANTE',bera:'EMPATES',alt:'MENOS 2.5',ust:'MÁS 2.5',ust35:'MÁS 3.5',surpriz:'SORPRESA'},tema:{banko:'Los más seguros',sistem:'Sistema de cuota alta',ev:'Locales fuertes',dep:'Ganadores visitantes',bera:'Empates atrevidos',alt:'Pocos goles — menos 2.5',ust:'Muchos goles — más 2.5',ust35:'Fiesta de goles — más 3.5',surpriz:'Sorpresa de cuota alta'},guven:{saglam:'SÓLIDO',dengeli:'EQUILIBRADO',iddiali:'ATREVIDO'}},
+ ja:{baslik:'🎯 本日のクーポン',kuptop:'ヨーロッパ · {n}クーポン · ciki AI',mac:'試合',oran:'オッズ',foot:'分析・娯楽目的です · 賭けの助言ではありません · 17+',tip:{banko:'鉄板',sistem:'システム6',ev:'ホーム勝利',dep:'アウェー勝利',bera:'引き分け',alt:'2.5アンダー',ust:'2.5オーバー',ust35:'3.5オーバー',surpriz:'サプライズ'},tema:{banko:'最も堅い予想',sistem:'高オッズシステム',ev:'強いホームチーム',dep:'アウェーの勝者',bera:'大胆な引き分け',alt:'少ないゴール — 2.5アンダー',ust:'ゴール豊富 — 2.5オーバー',ust35:'ゴール祭り — 3.5オーバー',surpriz:'高オッズのサプライズ'},guven:{saglam:'堅実',dengeli:'バランス',iddiali:'大胆'}}
+};
+async function kuponAc(){var kv=document.getElementById('toto');document.body.style.overflow='hidden';kv.scrollTop=0;var kd=KUPD[DIL]||KUPD.en;
+  kv.innerHTML='<div class="dbar"><span class="geri" onclick="totoKapat()">‹</span><span class="baslik">'+kd.baslik+'</span><span style="width:24px"></span></div><div class="load">…</div>';kv.classList.add('on');
+  var K;try{K=await (await fetch(API+'/data/kuponlar.json?_='+Date.now())).json();}catch(e){kv.querySelector('.load').textContent='—';return;}
+  kuponRender(K.kuponlar||[]);}
+function kuponRender(kuponlar){var kv=document.getElementById('toto');var kd=KUPD[DIL]||KUPD.en;
+  var cards=kuponlar.map(function(k,i){var acc=KUPRENK[k.tip]||'#f2c94c';var gk=kupGuven(k.tutma);
+    var bacaklar=k.bacaklar.map(function(b){return '<div class="kbrow"><div class="kbmac"><b>'+tr(b.ev)+'</b> – '+tr(b.dep)+'</div><div class="kbsec" style="color:'+acc+'">'+(SEC[b.key]||b.sec)+'<em>%'+b.p+' · '+(b.o).toFixed(2)+'</em></div></div>';}).join('');
+    return '<div class="kup'+(i===0?' on':'')+'" style="--acc:'+acc+'" onclick="this.classList.toggle(\'on\')"><div class="khead"><div class="krozet">'+(kd.tip[k.tip]||k.baslik)+'</div><div class="kozet">'+k.bacaklar.length+' '+kd.mac+' · <b style="color:'+KUPGRENK[gk]+'">'+kd.guven[gk]+'</b></div><div class="kchev">›</div><div class="koran">'+(k.oran).toFixed(2)+'<span>'+kd.oran+'</span></div></div><div class="kbody"><div class="kozetf">'+(kd.tema[k.tip]||'')+'</div>'+bacaklar+'</div></div>';}).join('');
+  kv.innerHTML='<div class="dbar"><span class="geri" onclick="totoKapat()">‹</span><span class="baslik">'+kd.baslik+'</span><span style="width:24px"></span></div><div class="kupwrap"><div class="kuptop">'+kd.kuptop.replace('{n}',kuponlar.length)+'</div>'+cards+'<div class="kupfoot">'+kd.foot+'</div></div>';}
+
+/* ===== REKLAM (LevelPlay) — GRACEFUL: plugin/reklam/consent yoksa app HİÇ etkilenmez (Apple onayı için) ===== */
+var LP=(window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.LevelPlayAds)||null;
+var _reklamOK=false;
+async function reklamBaslat(){
+  if(!LP)return;                                       // web'de / plugin yoksa sessiz geç
+  try{
+    await LP.requestConsentInfo();                     // CMP (usercentrics) — consent kararı
+    await LP.initialize({appKey:'27412cf35',isTesting:false});
+    try{await LP.requestTrackingAuthorization();}catch(e){}   // iOS ATT (graceful)
+    try{await LP.loadInterstitial();}catch(e){}
+    try{await LP.loadRewarded();}catch(e){}               // ödüllü ön-yükle
+    try{await LP.createBanner({adUnitId:'7booe4feklxa3gqi',adSize:'ADAPTIVE',position:'BOTTOM'});await LP.showBanner();}catch(e){}   // alt banner (graceful)
+    _reklamOK=true;
+  }catch(e){}                                          // init olmazsa app normal çalışır (reklamsız)
+}
+var _sonGecis=0;
+async function reklamGecis(){                          // geçiş — graceful + SEYREK (3dk cooldown, sadece tahmin girişinde)
+  if(!LP||!_reklamOK)return;
+  var _n=Date.now();if(_n-_sonGecis<180000)return;     // son gösterimden 3dk geçmediyse atla
+  try{var r=await LP.isInterstitialReady();if(r&&(r.ready||r.isReady)){await LP.showInterstitial();_sonGecis=_n;try{await LP.loadInterstitial();}catch(e){}}}catch(e){}
+}
+try{if(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform())reklamBaslat();}catch(e){}
 async function totoAc(){var tv=document.getElementById('toto');document.body.style.overflow='hidden';tv.scrollTop=0;
   tv.innerHTML='<div class="dbar"><span class="geri" onclick="totoKapat()">‹</span><span class="baslik">🎯 Süper Toto</span><span style="width:24px"></span></div><div class="load">Yükleniyor…</div>';tv.classList.add('on');
   try{TOTO=await (await fetch(API+'/data/toto.json?_='+Date.now())).json();}catch(e){tv.querySelector('.load').textContent='Program yüklenemedi.';return;}
@@ -423,7 +487,7 @@ function totoKopyalaBol(){if(!BOL)return;var t=BOL.join('\n');
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){alert(BOL.length+' kupon panoya kopyalandı ✓');},function(){alert('Kopyalanamadı — tarayıcı izni gerekli.');});}
   else{var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');alert(BOL.length+' kupon kopyalandı ✓');}catch(e){alert('Kopyalanamadı.');}document.body.removeChild(ta);}}
 function totoTemizle(){totoSecim={};BOL=null;totoRender();}
-function acAI(id,e){if(e)e.stopPropagation();ac(id).then(function(){var t=document.querySelector('#detay .sk2[onclick="gt(\'ai\',this)"]');if(t)t.click();});}
+function acAI(id,e){if(e)e.stopPropagation();ac(id).then(function(){var t=document.querySelector('#detay .sk2[onclick="gt(\'ai\',this)"]');if(t)t.click();reklamGecis();});}   // tahmine girerken seyrek geçiş reklamı (3dk cooldown, graceful)
 var GUNAD=['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'],AYAD=['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
 function gunEtiket(t){var d=new Date(t);if(isNaN(d.getTime()))return t;var b=GUNAD[d.getDay()]+', '+d.getDate()+' '+AYAD[d.getMonth()];var bg=new Date();bg.setHours(0,0,0,0);var fark=Math.round((d-bg)/86400000);return (fark===0?'Bugün · ':(fark===1?'Yarın · ':''))+b;}
 async function karnedenAc(id,tarih){karneKapat();if(!MAC[id]&&tarih){try{await loadGun(tarih,null,true);}catch(e){}}if(MAC[id])ac(id);else alert('Maç şu an yüklenemedi, tekrar dene.');}
@@ -456,6 +520,7 @@ function karneTab(key,el){document.querySelectorAll('#karne .kt').forEach(s=>s.c
 function gt(key,el){document.querySelectorAll('#detay .sk2').forEach(s=>s.classList.remove('on'));el.classList.add('on');document.querySelectorAll('#detay .tp').forEach(p=>p.classList.remove('on'));document.getElementById('tp_'+key).classList.add('on');}
 function sohbetAc(){if(!CIKI_TOKEN){girisAc();return;}var i=document.getElementById('cinput');i.classList.toggle('on');if(i.classList.contains('on'))setTimeout(function(){document.getElementById('csoru').focus();},50);}
 async function sorCiki(){if(!CIKI_TOKEN){girisAc();return;}var el=document.getElementById('csoru');var q=(el.value||'').trim();if(!q)return;var c=document.getElementById('chat');
+  if(LP&&_reklamOK){try{var _rr=await LP.isRewardedReady();if(_rr&&(_rr.ready||_rr.isReady)){await LP.showRewarded();try{await LP.loadRewarded();}catch(e){}}}catch(e){}}   // ödüllü: izle→soru hakkı (graceful; reklam yoksa direkt sorar)
   c.insertAdjacentHTML('beforeend','<div class="cbub u"><span class="cav">👤</span><div class="cmsg">'+q.replace(/</g,'&lt;')+'</div></div>');
   el.value='';var tid='t'+Date.now();
   c.insertAdjacentHTML('beforeend','<div class="cbub a" id="'+tid+'"><span class="cav">✦</span><div class="cmsg">ciki yazıyor…</div></div>');
