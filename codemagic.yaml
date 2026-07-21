@@ -1,46 +1,64 @@
 workflows:
   ios-capacitor:
-    name: cikicikigoal iOS (Capacitor)
+    name: cikicikigoal iOS (Capacitor CocoaPods)
     instance_type: mac_mini_m2
     max_build_duration: 60
     integrations:
       app_store_connect: cikicikibaba ASC      # ASC API key — CLI imza araçlarına otomatik geçer
     environment:
       groups:
-        - ios_signing          # Codemagic UI'da bu grup + DIST_CERT_KEY_B64 (Secure) eklenecek
+        - ios_signing          # Codemagic UI: bu grup + DIST_CERT_KEY_B64 (Secure)
       vars:
         BUNDLE_ID: "com.cikicikigoal.app"
-        XCODE_PROJECT: "ios/App/App.xcodeproj"
+        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
       node: 22
       xcode: latest
-      # Capacitor 8 = Swift Package Manager (CocoaPods YOK)
+      # Capacitor: iOS'u CocoaPods modunda kuruyoruz (LevelPlay reklam SDK'sı = IronSource podspec, SPM'de yok)
     scripts:
       - name: npm install
         script: npm install
-      - name: Capacitor sync iOS (www + config + SPM pluginler)
-        script: npx cap sync ios
-      - name: İmza — sertifika + profil OLUŞTUR/uygula (ASC API key)
+      - name: iOS'u CocoaPods moduna çevir (reklam SDK için) + Info.plist koru
+        script: |
+          set -e
+          # git'teki Info.plist (76 SKAdNetwork + ATT) yedekle
+          cp ios/App/App/Info.plist /tmp/Info_ccg.plist
+          # SPM iOS'u kaldır, CocoaPods (Podfile) ile yeniden oluştur
+          rm -rf ios
+          npx cap add ios                       # macOS'ta Capacitor 8 default = CocoaPods
+          # Info.plist geri yükle (SKAdNetwork + ATT korundu)
+          cp /tmp/Info_ccg.plist ios/App/App/Info.plist
+          # deployment target 15 (LevelPlay iOS 15+ ister) — Podfile
+          if grep -q "platform :ios" ios/App/Podfile; then
+            sed -i '' "s/platform :ios.*/platform :ios, '15.0'/" ios/App/Podfile
+          else
+            sed -i '' "1i\\
+          platform :ios, '15.0'
+          " ios/App/Podfile
+          fi
+          echo "=== Podfile ilk satırlar ==="; head -5 ios/App/Podfile
+      - name: Capacitor sync + pod install (LevelPlay + IronSource SDK çekilir)
+        script: |
+          set -e
+          npx cap sync ios
+          cd ios/App && pod install --repo-update
+      - name: İmza — sertifika + profil (ASC API key)
         script: |
           set -e
           keychain initialize
-          # SABİT private key (Codemagic env: DIST_CERT_KEY_B64, grup: ios_signing, Secure ✓).
           if [ -z "$DIST_CERT_KEY_B64" ]; then
-            echo "❌ DIST_CERT_KEY_B64 BOŞ geldi. Codemagic > Environment variables kontrol et:"
-            echo "   ad=DIST_CERT_KEY_B64  |  grup=ios_signing  |  Secure=işaretli  |  değer tam yapıştırılmış"
+            echo "❌ DIST_CERT_KEY_B64 BOŞ. Codemagic > Environment variables: ad=DIST_CERT_KEY_B64 grup=ios_signing Secure=✓"
             exit 1
           fi
-          echo "DIST_CERT_KEY_B64 uzunluk: ${#DIST_CERT_KEY_B64} karakter"
           printf '%s' "$DIST_CERT_KEY_B64" | openssl base64 -d -A > /tmp/dist_key_raw.pem
           if ! grep -qE "BEGIN (RSA )?PRIVATE KEY" /tmp/dist_key_raw.pem; then
-            echo "❌ Çözülen içerik geçerli PEM değil — env değeri eksik/bozuk yapıştırılmış."; exit 1
+            echo "❌ Çözülen içerik geçerli PEM değil."; exit 1
           fi
-          # app-store-connect PKCS#1 (BEGIN RSA PRIVATE KEY) ister → PKCS#8/junk farketmez, normalize et
           if openssl rsa -in /tmp/dist_key_raw.pem -traditional -out /tmp/dist_key.pem 2>/dev/null \
              || openssl rsa -in /tmp/dist_key_raw.pem -out /tmp/dist_key.pem 2>/dev/null; then
-            echo "✅ key normalize edildi (PKCS#1): $(head -1 /tmp/dist_key.pem)"
+            echo "✅ key normalize (PKCS#1)"
           else
-            echo "❌ openssl key'i parse edemedi — env base64'ünü yeniden yapıştır."; exit 1
+            echo "❌ openssl key parse edemedi."; exit 1
           fi
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
@@ -48,18 +66,14 @@ workflows:
             --create
           keychain add-certificates
           xcode-project use-profiles
-          echo "=== indirilen profiller ==="
-          ls -la ~/Library/MobileDevice/Provisioning\ Profiles/ 2>/dev/null || echo "PROFIL YOK"
-          echo "=== keychain imza kimlikleri ==="
-          security find-identity -v -p codesigning || true
       - name: Sürüm + build numarası
         script: |
           cd ios/App
           agvtool new-marketing-version 1.0.0
           agvtool new-version -all $(($BUILD_NUMBER + 100))
-      - name: IPA derle (App Store dağıtım, SPM)
+      - name: IPA derle (App Store, CocoaPods workspace)
         script: |
-          xcode-project build-ipa --project "$XCODE_PROJECT" --scheme "$XCODE_SCHEME"
+          xcode-project build-ipa --workspace "$XCODE_WORKSPACE" --scheme "$XCODE_SCHEME"
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
