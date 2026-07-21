@@ -25,18 +25,21 @@ workflows:
           cp ios/App/App/Info.plist /tmp/Info_ccg.plist
           # SPM iOS'u kaldır, CocoaPods (Podfile) ile yeniden oluştur
           rm -rf ios
-          npx cap add ios                       # macOS'ta Capacitor 8 default = CocoaPods
+          npx cap add ios --packagemanager Cocoapods   # CocoaPods'u ZORLA (Podfile + IronSource podspec); flag olmadan SPM seçiyor
           # Info.plist geri yükle (SKAdNetwork + ATT korundu)
           cp /tmp/Info_ccg.plist ios/App/App/Info.plist
-          # deployment target 15 (LevelPlay iOS 15+ ister) — Podfile
+          # Podfile gerçekten oluştu mu?
+          if [ ! -f ios/App/Podfile ]; then
+            echo "❌ Podfile YOK — cap add hâlâ SPM seçti. Kalan dosyalar:"; ls -la ios/App/
+            exit 1
+          fi
+          # deployment target 15 (LevelPlay iOS 15+ ister)
           if grep -q "platform :ios" ios/App/Podfile; then
             sed -i '' "s/platform :ios.*/platform :ios, '15.0'/" ios/App/Podfile
           else
-            sed -i '' "1i\\
-          platform :ios, '15.0'
-          " ios/App/Podfile
+            printf "platform :ios, '15.0'\n%s" "$(cat ios/App/Podfile)" > ios/App/Podfile
           fi
-          echo "=== Podfile ilk satırlar ==="; head -5 ios/App/Podfile
+          echo "=== Podfile ilk satırlar ==="; head -8 ios/App/Podfile
       - name: Capacitor sync + pod install (LevelPlay + IronSource SDK çekilir)
         script: |
           set -e
