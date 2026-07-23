@@ -28,6 +28,8 @@ workflows:
           npx cap add ios --packagemanager Cocoapods   # CocoaPods'u ZORLA (Podfile + IronSource podspec); flag olmadan SPM seçiyor
           # Info.plist geri yükle (SKAdNetwork + ATT korundu)
           cp /tmp/Info_ccg.plist ios/App/App/Info.plist
+          # ⭐ İKON — ALTIN TOP: cap add ios default ikon koydu; assets/icon-only.png'den yeniden üret
+          npx @capacitor/assets generate --ios || echo "⚠️ ikon üretimi uyarı verdi (devam)"
           # Podfile gerçekten oluştu mu?
           if [ ! -f ios/App/Podfile ]; then
             echo "❌ Podfile YOK — cap add hâlâ SPM seçti. Kalan dosyalar:"; ls -la ios/App/
